@@ -15,33 +15,33 @@
   --text:#e2e8f0;
   --muted:#5a6a7e;
   --accent:#38bdf8;
-
-  --val-fg:#86efac;  --val-bg:rgba(134,239,172,0.12);
-  --qua-fg:#93c5fd;  --qua-bg:rgba(147,197,253,0.12);
-  --mom-fg:#fbbf24;  --mom-bg:rgba(251,191,36,0.12);
-  --qvm-fg:#e879f9;  --qvm-bg:rgba(232,121,249,0.14);
   --gold:#f59e0b;
-  --top10bg:rgba(245,158,11,0.06);
-  --top10border:rgba(245,158,11,0.5);
+  --top10bg:rgba(245,158,11,0.05);
+  --top10border:rgba(245,158,11,0.6);
+
+  /* Stockopedia exact colour bands */
+  --sp-great:#2e7d32;   /* 80-100  deep green  */
+  --sp-good: #558b2f;   /* 60-79   mid green   */
+  --sp-mid:  #607d8b;   /* 40-59   slate grey  */
+  --sp-weak: #e65100;   /* 20-39   orange      */
+  --sp-poor: #b71c1c;   /* 0-19    red         */
 }
 html{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px}
 body{min-height:100vh}
 .page{max-width:1600px;margin:0 auto;padding:28px 20px 80px}
 
-/* Header */
 header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:24px}
 .logo{font-size:22px;font-weight:700;letter-spacing:-0.5px}
 .logo span{color:var(--accent)}
 .updated{font-size:11px;color:var(--muted);font-family:monospace}
 
-/* Summary cards */
 .cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:22px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
 .card-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:6px}
 .card-value{font-size:28px;font-weight:700;font-family:monospace}
-.cn{color:var(--text)}.cv{color:var(--val-fg)}.cq{color:var(--qua-fg)}.cm{color:var(--mom-fg)}.cqvm{color:var(--qvm-fg)}
+.cn{color:var(--text)}
+.cv{color:#81c784}.cq{color:#64b5f6}.cm{color:#ffb74d}.cqvm{color:#81c784}
 
-/* Toolbar */
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
 .search-wrap{position:relative;flex:1;min-width:200px}
 .search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:0.35}
@@ -53,7 +53,6 @@ header{display:flex;align-items:center;justify-content:space-between;flex-wrap:w
 .t10-label input{accent-color:var(--gold);cursor:pointer}
 .cnt{font-size:11px;color:var(--muted);font-family:monospace;white-space:nowrap;margin-left:auto}
 
-/* Table */
 .table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;min-width:900px}
 
@@ -65,8 +64,9 @@ thead th{
   user-select:none;position:sticky;top:0;z-index:2;text-align:left
 }
 thead th.num{text-align:right}
+thead th.sc{text-align:center}
 thead th:hover{color:var(--text)}
-thead th.act{color:var(--qvm-fg)}
+thead th.act{color:#81c784}
 .si{display:inline-block;margin-left:3px;opacity:0.35;font-size:9px}
 th.act .si{opacity:1}
 
@@ -77,36 +77,33 @@ tbody tr.top10{background:var(--top10bg)}
 tbody tr.top10 td:first-child{border-left:2px solid var(--top10border)}
 
 td{padding:9px 12px;font-size:12px;vertical-align:middle}
-td.rn{font-family:monospace;color:var(--muted);font-size:11px;text-align:center;width:32px}
-td.tk{font-family:monospace;font-weight:600;color:var(--accent);font-size:13px}
-td.nm{max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-td.sc{color:var(--muted);font-size:11px;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-td.num{text-align:right;font-family:monospace;color:var(--muted);font-size:11px}
-td.pos{color:#86efac}
-td.neg{color:#f87171}
+td.rn{font-family:monospace;color:var(--muted);font-size:11px;text-align:center;width:36px}
+td.tk{font-family:monospace;font-weight:700;color:var(--accent);font-size:13px}
+td.nm{max-width:190px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+td.sc-col{color:var(--muted);font-size:11px;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+td.num{text-align:right;font-family:monospace;color:var(--muted);font-size:12px}
+td.pos{color:#81c784}
+td.neg{color:#ef9a9a}
+td.center{text-align:center}
 
-/* Score circles — Stockopedia style */
-.score-cell{text-align:center !important}
-.score-circle{
+/* ── Stockopedia-style score circle ── */
+.sc-wrap{display:flex;align-items:center;justify-content:center}
+.circle{
   display:inline-flex;align-items:center;justify-content:center;
-  width:36px;height:36px;border-radius:50%;
-  font-family:monospace;font-size:13px;font-weight:700;
-  flex-shrink:0
+  width:34px;height:34px;border-radius:50%;
+  font-size:12px;font-weight:700;color:#fff;font-family:monospace;
+  flex-shrink:0;letter-spacing:-0.5px
 }
-/* QVM is slightly bigger */
-.score-circle.qvm{width:40px;height:40px;font-size:14px}
+.circle.lg{width:40px;height:40px;font-size:14px}
 
-/* colour bands — match Stockopedia green/grey/red */
-.s-great {background:#166534;color:#bbf7d0}   /* 80–100 */
-.s-good  {background:#14532d;color:#86efac}   /* 60–79  */
-.s-mid   {background:#374151;color:#9ca3af}   /* 40–59  */
-.s-weak  {background:#431407;color:#fdba74}   /* 20–39  */
-.s-poor  {background:#450a0a;color:#fca5a5}   /* 0–19   */
+/* Colour bands — calibrated to Stockopedia screenshot */
+.c80{background:#2e7d32}  /* 80-100 */
+.c60{background:#558b2f}  /* 60-79  */
+.c40{background:#607d8b}  /* 40-59  */
+.c20{background:#e65100}  /* 20-39  */
+.c0 {background:#b71c1c}  /* 0-19   */
+.cn2{background:#37474f;color:#90a4ae}  /* null/— */
 
-/* mini trend arrow on score */
-.sarrow{font-size:9px;margin-right:1px;opacity:0.7}
-
-/* footer */
 footer{margin-top:40px;text-align:center;font-size:11px;color:var(--muted);line-height:2}
 footer a{color:var(--accent);text-decoration:none}
 #status{text-align:center;padding:60px;color:var(--muted)}
@@ -125,7 +122,7 @@ footer a{color:var(--accent);text-decoration:none}
   <div class="card"><div class="card-label">Avg value rank</div><div class="card-value cv" id="cv">—</div></div>
   <div class="card"><div class="card-label">Avg quality rank</div><div class="card-value cq" id="cq">—</div></div>
   <div class="card"><div class="card-label">Avg momentum rank</div><div class="card-value cm" id="cm">—</div></div>
-  <div class="card"><div class="card-label">Avg QVM rank</div><div class="card-value cqvm" id="cqvm">—</div></div>
+  <div class="card"><div class="card-label">Avg StockRank</div><div class="card-value cqvm" id="cqvm">—</div></div>
 </div>
 
 <div class="toolbar">
@@ -140,31 +137,28 @@ footer a{color:var(--accent);text-decoration:none}
 
 <div id="status">Loading rankings…</div>
 <div class="table-wrap" id="table-wrap" style="display:none">
-<table id="tbl">
-<thead>
-<tr>
+<table>
+<thead><tr>
   <th data-col="" style="width:36px">#</th>
   <th data-col="ticker">Ticker <span class="si">↕</span></th>
   <th data-col="name">Company <span class="si">↕</span></th>
   <th data-col="sector">Sector <span class="si">↕</span></th>
-  <th class="num" data-col="pe" title="P/E — Price to Earnings">P/E <span class="si">↕</span></th>
-  <th class="num" data-col="pb" title="P/B — Price to Book">P/B <span class="si">↕</span></th>
+  <th class="num" data-col="pe" title="Price / Earnings">P/E <span class="si">↕</span></th>
+  <th class="num" data-col="pb" title="Price / Book">P/B <span class="si">↕</span></th>
   <th class="num" data-col="roe" title="Return on Equity %">ROE% <span class="si">↕</span></th>
   <th class="num" data-col="op_margin" title="Operating Margin %">Op.Margin% <span class="si">↕</span></th>
   <th class="num" data-col="ret_12m" title="12-month price return %">12M% <span class="si">↕</span></th>
-  <th class="score-cell act" data-col="value_rank" title="Value score 0–100. Higher = cheaper stock.">Value <span class="si">↓</span></th>
-  <th class="score-cell" data-col="quality_rank" title="Quality score 0–100. Higher = better business.">Quality <span class="si">↕</span></th>
-  <th class="score-cell" data-col="momentum_rank" title="Momentum score 0–100. Higher = stronger price trend.">Momentum <span class="si">↕</span></th>
-  <th class="score-cell act" data-col="qvm_rank" title="Composite QVM StockRank 0–100">StockRank <span class="si">↓</span></th>
-</tr>
-</thead>
+  <th class="sc act" data-col="value_rank" title="Value score 0–100. 100 = most undervalued.">Value <span class="si">↕</span></th>
+  <th class="sc" data-col="quality_rank" title="Quality score 0–100. 100 = highest quality business.">Quality <span class="si">↕</span></th>
+  <th class="sc" data-col="momentum_rank" title="Momentum score 0–100. 100 = strongest price trend.">Momentum <span class="si">↕</span></th>
+  <th class="sc act" data-col="qvm_rank" title="StockRank 0–100. Composite of Value + Quality + Momentum.">StockRank™ <span class="si">↓</span></th>
+</tr></thead>
 <tbody id="tbody"></tbody>
 </table>
 </div>
 
 <footer>
   Data: <a href="https://borsdata.se" target="_blank">Börsdata</a> &nbsp;·&nbsp;
-  Scoring: process.py &nbsp;·&nbsp;
   Methodology mirrors <a href="https://www.stockopedia.com/features/stockranks-methodology/" target="_blank">Stockopedia StockRanks</a><br>
   Not financial advice. Past performance does not guarantee future results.
 </footer>
@@ -172,39 +166,33 @@ footer a{color:var(--accent);text-decoration:none}
 
 <script>
 const DATA_URL = "data/scores.json";
+let allStocks=[], sortCol="qvm_rank", sortDir=-1, filterQ="", filterSec="", top10Only=false;
 
-let allStocks = [];
-let sortCol   = "qvm_rank";   // DEFAULT: sort by QVM rank
-let sortDir   = -1;           // -1 = descending (highest first)
-let filterQ   = "";
-let filterSec = "";
-let top10Only = false;
-
-/* ── Score circle colour band ── */
-function bandClass(v) {
-  if (v == null) return "s-mid";
-  if (v >= 80)   return "s-great";
-  if (v >= 60)   return "s-good";
-  if (v >= 40)   return "s-mid";
-  if (v >= 20)   return "s-weak";
-  return "s-poor";
+/* Score → colour class */
+function circleClass(v) {
+  if (v == null || isNaN(v)) return "cn2";
+  const n = Math.round(v);
+  if (n >= 80) return "c80";
+  if (n >= 60) return "c60";
+  if (n >= 40) return "c40";
+  if (n >= 20) return "c20";
+  return "c0";
 }
 
-function scoreCircle(v, extra) {
-  const cls = bandClass(v);
-  const size = extra || "";
-  const label = v == null ? "—" : Math.round(v);
-  return `<span class="score-circle ${cls} ${size}">${label}</span>`;
+/* Render one score circle. lg=true for StockRank (bigger) */
+function circle(v, lg) {
+  const cls  = circleClass(v);
+  const size = lg ? "lg" : "";
+  const lbl  = (v == null || isNaN(v)) ? "—" : Math.round(v);
+  return `<div class="sc-wrap"><span class="circle ${cls} ${size}">${lbl}</span></div>`;
 }
 
-const f1  = v => (v == null || isNaN(v)) ? "—" : Number(v).toFixed(1);
-const f0  = v => (v == null || isNaN(v)) ? "—" : Math.round(v);
+const f1  = v => (v==null||isNaN(v)) ? "—" : Number(v).toFixed(1);
 const avg = arr => {
-  const a = arr.filter(x => x != null && !isNaN(x));
-  return a.length ? Math.round(a.reduce((s,x) => s+x, 0) / a.length) : "—";
+  const a = arr.filter(x => x!=null && !isNaN(x));
+  return a.length ? Math.round(a.reduce((s,x)=>s+x,0)/a.length) : "—";
 };
 
-/* ── Render ── */
 function getFiltered() {
   let rows = allStocks.slice();
   if (filterSec) rows = rows.filter(r => r.sector === filterSec);
@@ -215,11 +203,11 @@ function getFiltered() {
       (r.name||"").toLowerCase().includes(q)
     );
   }
-  rows.sort((a, b) => {
+  rows.sort((a,b) => {
     if (!sortCol) return 0;
-    const av = a[sortCol] ?? (sortDir === -1 ? -Infinity : Infinity);
-    const bv = b[sortCol] ?? (sortDir === -1 ? -Infinity : Infinity);
-    if (typeof av === "string") return sortDir * av.localeCompare(bv);
+    const av = a[sortCol] ?? (sortDir===-1 ? -Infinity : Infinity);
+    const bv = b[sortCol] ?? (sortDir===-1 ? -Infinity : Infinity);
+    if (typeof av==="string") return sortDir * av.localeCompare(bv);
     return sortDir * (bv - av);
   });
   if (top10Only) rows = rows.slice(0, 10);
@@ -229,15 +217,13 @@ function getFiltered() {
 function render() {
   const rows = getFiltered();
 
-  /* top-10 set always based on full QVM sort */
+  /* Top 10 always based on full QVM sort, unfiltered */
   const top10 = new Set(
     allStocks.slice()
-      .sort((a,b) => (b.qvm_rank||0) - (a.qvm_rank||0))
-      .slice(0, 10)
-      .map(s => s.ticker)
+      .sort((a,b) => (b.qvm_rank||0)-(a.qvm_rank||0))
+      .slice(0,10).map(s=>s.ticker)
   );
 
-  /* update summary cards */
   document.getElementById("cn").textContent   = allStocks.length;
   document.getElementById("cv").textContent   = avg(allStocks.map(s=>s.value_rank));
   document.getElementById("cq").textContent   = avg(allStocks.map(s=>s.quality_rank));
@@ -245,30 +231,27 @@ function render() {
   document.getElementById("cqvm").textContent = avg(allStocks.map(s=>s.qvm_rank));
   document.getElementById("cnt").textContent  = rows.length + " stocks";
 
-  const html = rows.map((s, i) => {
+  const html = rows.map((s,i) => {
     const isTop = top10.has(s.ticker);
+    const ret12 = s.ret_12m!=null ? ((s.ret_12m>=0?"+":"")+f1(s.ret_12m)+"%") : "—";
+    const rCls  = s.ret_12m==null?"num":s.ret_12m>=0?"num pos":"num neg";
+    const roCls = s.roe==null?"num":s.roe>=0?"num pos":"num neg";
+    const oCls  = s.op_margin==null?"num":s.op_margin>=0?"num pos":"num neg";
 
-    const ret12 = s.ret_12m != null
-      ? ((s.ret_12m >= 0 ? "+" : "") + f1(s.ret_12m) + "%")
-      : "—";
-    const retCls = s.ret_12m == null ? "num" : s.ret_12m >= 0 ? "num pos" : "num neg";
-    const roeCls = s.roe == null ? "num" : s.roe >= 0 ? "num pos" : "num neg";
-    const opmCls = s.op_margin == null ? "num" : s.op_margin >= 0 ? "num pos" : "num neg";
-
-    return `<tr class="${isTop ? "top10" : ""}">
-  <td class="rn">${i+1}</td>
-  <td class="tk">${s.ticker}</td>
-  <td class="nm" title="${s.name}">${s.name||"—"}</td>
-  <td class="sc" title="${s.sector||""}">${s.sector||"—"}</td>
-  <td class="num">${f1(s.pe)}</td>
-  <td class="num">${f1(s.pb)}</td>
-  <td class="${roeCls}">${f1(s.roe)}</td>
-  <td class="${opmCls}">${f1(s.op_margin)}</td>
-  <td class="${retCls}">${ret12}</td>
-  <td class="score-cell">${scoreCircle(s.value_rank)}</td>
-  <td class="score-cell">${scoreCircle(s.quality_rank)}</td>
-  <td class="score-cell">${scoreCircle(s.momentum_rank)}</td>
-  <td class="score-cell">${scoreCircle(s.qvm_rank, "qvm")}</td>
+    return `<tr class="${isTop?"top10":""}">
+<td class="rn">${i+1}</td>
+<td class="tk">${s.ticker}</td>
+<td class="nm" title="${s.name||""}">${s.name||"—"}</td>
+<td class="sc-col" title="${s.sector||""}">${s.sector||"—"}</td>
+<td class="num">${f1(s.pe)}</td>
+<td class="num">${f1(s.pb)}</td>
+<td class="${roCls}">${f1(s.roe)}</td>
+<td class="${oCls}">${f1(s.op_margin)}</td>
+<td class="${rCls}">${ret12}</td>
+<td>${circle(s.value_rank)}</td>
+<td>${circle(s.quality_rank)}</td>
+<td>${circle(s.momentum_rank)}</td>
+<td>${circle(s.qvm_rank, true)}</td>
 </tr>`;
   }).join("");
 
@@ -276,77 +259,56 @@ function render() {
     `<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--muted)">No results</td></tr>`;
 }
 
-/* ── Column sort ── */
+/* Sort on header click */
 document.querySelectorAll("thead th[data-col]").forEach(th => {
   th.addEventListener("click", () => {
     const col = th.dataset.col;
     if (!col) return;
-    sortDir = (sortCol === col) ? sortDir * -1 : -1;
+    sortDir = (sortCol===col) ? sortDir*-1 : -1;
     sortCol = col;
-
     document.querySelectorAll("thead th").forEach(h => {
       h.classList.remove("act");
-      const si = h.querySelector(".si");
-      if (si) si.textContent = "↕";
+      const si=h.querySelector(".si"); if(si) si.textContent="↕";
     });
     th.classList.add("act");
-    const si = th.querySelector(".si");
-    if (si) si.textContent = sortDir === -1 ? "↓" : "↑";
+    const si=th.querySelector(".si"); if(si) si.textContent=sortDir===-1?"↓":"↑";
     render();
   });
 });
 
-/* ── Filters ── */
-document.getElementById("search").addEventListener("input", e => { filterQ = e.target.value.trim(); render(); });
-document.getElementById("sec-filter").addEventListener("change", e => { filterSec = e.target.value; render(); });
-document.getElementById("t10only").addEventListener("change", e => { top10Only = e.target.checked; render(); });
+document.getElementById("search").addEventListener("input", e=>{filterQ=e.target.value.trim();render();});
+document.getElementById("sec-filter").addEventListener("change", e=>{filterSec=e.target.value;render();});
+document.getElementById("t10only").addEventListener("change", e=>{top10Only=e.target.checked;render();});
 
-/* ── Load data ── */
+/* Load scores.json */
 async function loadData() {
   try {
-    const res = await fetch(DATA_URL + "?_=" + Date.now());
-    if (!res.ok) throw new Error("HTTP " + res.status);
+    const res = await fetch(DATA_URL+"?_="+Date.now());
+    if (!res.ok) throw new Error("HTTP "+res.status);
     const data = await res.json();
-
     allStocks = data.stocks || [];
-    document.getElementById("upd").textContent = "Updated: " + (data.updated || "unknown");
+    document.getElementById("upd").textContent = "Updated: "+(data.updated||"unknown");
 
-    /* populate sector dropdown */
-    const sectors = [...new Set(allStocks.map(s => s.sector).filter(Boolean))].sort();
+    const sectors = [...new Set(allStocks.map(s=>s.sector).filter(Boolean))].sort();
     const sel = document.getElementById("sec-filter");
-    sectors.forEach(sec => {
-      const o = document.createElement("option");
-      o.value = o.textContent = sec;
-      sel.appendChild(o);
-    });
+    sectors.forEach(sec=>{ const o=document.createElement("option"); o.value=o.textContent=sec; sel.appendChild(o); });
 
-    document.getElementById("status").style.display = "none";
-    document.getElementById("table-wrap").style.display = "";
+    document.getElementById("status").style.display="none";
+    document.getElementById("table-wrap").style.display="";
 
-    /* Default: sort by QVM rank descending — best stocks first */
-    sortCol = "qvm_rank";
-    sortDir = -1;
-
-    /* Mark the QVM column header as active */
-    document.querySelectorAll("thead th[data-col]").forEach(th => {
-      th.classList.remove("act");
-      const si = th.querySelector(".si");
-      if (si) si.textContent = "↕";
-    });
-    const qvmTh = document.querySelector("thead th[data-col='qvm_rank']");
-    if (qvmTh) {
+    /* Default: StockRank descending — rank 100 at top */
+    sortCol="qvm_rank"; sortDir=-1;
+    const qvmTh=document.querySelector("thead th[data-col='qvm_rank']");
+    if(qvmTh){
       qvmTh.classList.add("act");
-      const si = qvmTh.querySelector(".si");
-      if (si) si.textContent = "↓";
+      const si=qvmTh.querySelector(".si"); if(si) si.textContent="↓";
     }
-
     render();
-
-  } catch (err) {
-    document.getElementById("status").innerHTML =
-      `<div style="color:#f87171">Could not load <code>${DATA_URL}</code><br><small>${err.message}</small></div>
+  } catch(err) {
+    document.getElementById("status").innerHTML=
+      `<div style="color:#ef9a9a">Could not load <code>${DATA_URL}</code><br><small>${err.message}</small></div>
        <p style="margin-top:14px;font-size:12px;color:var(--muted)">
-         Make sure <b>process.py</b> has run and <b>data/scores.json</b> exists in the repo.
+         Make sure process.py has run and data/scores.json exists in the repo.
        </p>`;
   }
 }
