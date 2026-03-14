@@ -7,31 +7,17 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0b0f14;
-  --surface:#111820;
-  --card:#161e28;
-  --border:rgba(255,255,255,0.07);
-  --border2:rgba(255,255,255,0.13);
-  --text:#e2e8f0;
-  --muted:#5a6a7e;
-  --accent:#38bdf8;
-  --gold:#f59e0b;
-  --top10bg:rgba(245,158,11,0.05);
-  --top10border:rgba(245,158,11,0.6);
-
-  /* Stockopedia exact colour bands */
-  --sp-great:#2e7d32;   /* 80-100  deep green  */
-  --sp-good: #558b2f;   /* 60-79   mid green   */
-  --sp-mid:  #607d8b;   /* 40-59   slate grey  */
-  --sp-weak: #e65100;   /* 20-39   orange      */
-  --sp-poor: #b71c1c;   /* 0-19    red         */
+  --bg:#0b0f14;--surface:#111820;--card:#161e28;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#e2e8f0;--muted:#5a6a7e;--accent:#38bdf8;--gold:#f59e0b;
+  --top10bg:rgba(245,158,11,0.05);--top10bl:rgba(245,158,11,0.6);
 }
 html{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px}
 body{min-height:100vh}
 .page{max-width:1600px;margin:0 auto;padding:28px 20px 80px}
 
 header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:24px}
-.logo{font-size:22px;font-weight:700;letter-spacing:-0.5px}
+.logo{font-size:22px;font-weight:700;letter-spacing:-0.5px;color:var(--text)}
 .logo span{color:var(--accent)}
 .updated{font-size:11px;color:var(--muted);font-family:monospace}
 
@@ -39,74 +25,69 @@ header{display:flex;align-items:center;justify-content:space-between;flex-wrap:w
 .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
 .card-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:6px}
 .card-value{font-size:28px;font-weight:700;font-family:monospace}
-.cn{color:var(--text)}
-.cv{color:#81c784}.cq{color:#64b5f6}.cm{color:#ffb74d}.cqvm{color:#81c784}
+.cn{color:var(--text)}.cv{color:#81c784}.cq{color:#64b5f6}.cm{color:#ffb74d}.cqvm{color:#81c784}
 
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
-.search-wrap{position:relative;flex:1;min-width:200px}
-.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:0.35}
-.search-input{width:100%;background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:8px 12px 8px 34px;color:var(--text);font-size:13px;outline:none}
-.search-input:focus{border-color:var(--accent)}
-.sector-select{background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;cursor:pointer}
-.t10-label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;padding:8px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--card);user-select:none}
-.t10-label:hover{border-color:var(--gold);color:var(--gold)}
-.t10-label input{accent-color:var(--gold);cursor:pointer}
+.sw{position:relative;flex:1;min-width:200px}
+.sw svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:0.35}
+.si-input{width:100%;background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:8px 12px 8px 34px;color:var(--text);font-size:13px;outline:none;font-family:inherit}
+.si-input:focus{border-color:var(--accent)}
+.sec-sel{background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;cursor:pointer;font-family:inherit}
+.t10-lbl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;padding:8px 14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);user-select:none;white-space:nowrap}
+.t10-lbl:hover{border-color:var(--gold);color:var(--gold)}
+.t10-lbl input{accent-color:var(--gold);cursor:pointer;width:14px;height:14px}
 .cnt{font-size:11px;color:var(--muted);font-family:monospace;white-space:nowrap;margin-left:auto}
 
-.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+.tw{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;min-width:900px}
-
 thead th{
-  background:var(--surface);padding:10px 12px;
+  background:var(--surface);padding:10px 14px;
   font-size:10px;text-transform:uppercase;letter-spacing:0.07em;
   color:var(--muted);font-weight:600;white-space:nowrap;
   cursor:pointer;border-bottom:1px solid var(--border2);
   user-select:none;position:sticky;top:0;z-index:2;text-align:left
 }
-thead th.num{text-align:right}
-thead th.sc{text-align:center}
+thead th.r{text-align:right}
+thead th.c{text-align:center}
 thead th:hover{color:var(--text)}
-thead th.act{color:#81c784}
-.si{display:inline-block;margin-left:3px;opacity:0.35;font-size:9px}
-th.act .si{opacity:1}
+thead th.active{color:#81c784}
+.arr{display:inline-block;margin-left:3px;opacity:0.3;font-size:9px;transition:opacity .15s}
+th.active .arr{opacity:1}
 
 tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:rgba(255,255,255,0.025)}
 tbody tr.top10{background:var(--top10bg)}
-tbody tr.top10 td:first-child{border-left:2px solid var(--top10border)}
-
-td{padding:9px 12px;font-size:12px;vertical-align:middle}
+tbody tr.top10 td:first-child{border-left:2px solid var(--top10bl)}
+td{padding:9px 14px;font-size:12px;vertical-align:middle}
 td.rn{font-family:monospace;color:var(--muted);font-size:11px;text-align:center;width:36px}
-td.tk{font-family:monospace;font-weight:700;color:var(--accent);font-size:13px}
-td.nm{max-width:190px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-td.sc-col{color:var(--muted);font-size:11px;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-td.num{text-align:right;font-family:monospace;color:var(--muted);font-size:12px}
+td.tk{font-family:monospace;font-weight:700;color:var(--accent);font-size:13px;white-space:nowrap}
+td.nm{max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+td.se{color:var(--muted);font-size:11px;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+td.r{text-align:right;font-family:monospace;color:var(--muted);font-size:12px}
 td.pos{color:#81c784}
 td.neg{color:#ef9a9a}
-td.center{text-align:center}
+td.c{text-align:center}
 
-/* ── Stockopedia-style score circle ── */
-.sc-wrap{display:flex;align-items:center;justify-content:center}
+/* Score circles — Stockopedia style */
 .circle{
   display:inline-flex;align-items:center;justify-content:center;
-  width:34px;height:34px;border-radius:50%;
-  font-size:12px;font-weight:700;color:#fff;font-family:monospace;
-  flex-shrink:0;letter-spacing:-0.5px
+  width:36px;height:36px;border-radius:50%;
+  font-size:13px;font-weight:700;color:#fff;
+  font-family:monospace;letter-spacing:-0.5px;flex-shrink:0
 }
-.circle.lg{width:40px;height:40px;font-size:14px}
-
-/* Colour bands — calibrated to Stockopedia screenshot */
-.c80{background:#2e7d32}  /* 80-100 */
-.c60{background:#558b2f}  /* 60-79  */
-.c40{background:#607d8b}  /* 40-59  */
-.c20{background:#e65100}  /* 20-39  */
-.c0 {background:#b71c1c}  /* 0-19   */
-.cn2{background:#37474f;color:#90a4ae}  /* null/— */
+.circle.lg{width:42px;height:42px;font-size:15px}
+/* Colour bands matching Stockopedia */
+.g5{background:#1b5e20} /* 80-100 deep green  */
+.g4{background:#388e3c} /* 60-79  mid green   */
+.g3{background:#546e7a} /* 40-59  slate grey  */
+.g2{background:#e65100} /* 20-39  orange      */
+.g1{background:#b71c1c} /* 0-19   red         */
+.g0{background:#37474f;color:#78909c} /* null/— */
 
 footer{margin-top:40px;text-align:center;font-size:11px;color:var(--muted);line-height:2}
 footer a{color:var(--accent);text-decoration:none}
-#status{text-align:center;padding:60px;color:var(--muted)}
+#status{text-align:center;padding:60px;color:var(--muted);font-size:13px}
 </style>
 </head>
 <body>
@@ -118,41 +99,46 @@ footer a{color:var(--accent);text-decoration:none}
 </header>
 
 <div class="cards">
-  <div class="card"><div class="card-label">Stocks ranked</div><div class="card-value cn" id="cn">—</div></div>
-  <div class="card"><div class="card-label">Avg value rank</div><div class="card-value cv" id="cv">—</div></div>
-  <div class="card"><div class="card-label">Avg quality rank</div><div class="card-value cq" id="cq">—</div></div>
-  <div class="card"><div class="card-label">Avg momentum rank</div><div class="card-value cm" id="cm">—</div></div>
-  <div class="card"><div class="card-label">Avg StockRank</div><div class="card-value cqvm" id="cqvm">—</div></div>
+  <div class="card"><div class="card-label">Stocks ranked</div><div class="card-value cn" id="c-n">—</div></div>
+  <div class="card"><div class="card-label">Avg value rank</div><div class="card-value cv" id="c-v">—</div></div>
+  <div class="card"><div class="card-label">Avg quality rank</div><div class="card-value cq" id="c-q">—</div></div>
+  <div class="card"><div class="card-label">Avg momentum rank</div><div class="card-value cm" id="c-m">—</div></div>
+  <div class="card"><div class="card-label">Avg StockRank</div><div class="card-value cqvm" id="c-qvm">—</div></div>
 </div>
 
 <div class="toolbar">
-  <div class="search-wrap">
+  <div class="sw">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-    <input class="search-input" id="search" type="text" placeholder="Search ticker or company…" autocomplete="off">
+    <input class="si-input" id="srch" type="text" placeholder="Search ticker or company…" autocomplete="off">
   </div>
-  <select class="sector-select" id="sec-filter"><option value="">All sectors</option></select>
-  <label class="t10-label"><input type="checkbox" id="t10only"> Show top 10 only</label>
-  <span class="cnt" id="cnt"></span>
+  <select class="sec-sel" id="sec"><option value="">All sectors</option></select>
+  <label class="t10-lbl">
+    <input type="checkbox" id="t10">
+    Show top 10 only
+  </label>
+  <span class="cnt" id="cnt">— stocks</span>
 </div>
 
 <div id="status">Loading rankings…</div>
-<div class="table-wrap" id="table-wrap" style="display:none">
+<div class="tw" id="tw" style="display:none">
 <table>
-<thead><tr>
-  <th data-col="" style="width:36px">#</th>
-  <th data-col="ticker">Ticker <span class="si">↕</span></th>
-  <th data-col="name">Company <span class="si">↕</span></th>
-  <th data-col="sector">Sector <span class="si">↕</span></th>
-  <th class="num" data-col="pe" title="Price / Earnings">P/E <span class="si">↕</span></th>
-  <th class="num" data-col="pb" title="Price / Book">P/B <span class="si">↕</span></th>
-  <th class="num" data-col="roe" title="Return on Equity %">ROE% <span class="si">↕</span></th>
-  <th class="num" data-col="op_margin" title="Operating Margin %">Op.Margin% <span class="si">↕</span></th>
-  <th class="num" data-col="ret_12m" title="12-month price return %">12M% <span class="si">↕</span></th>
-  <th class="sc act" data-col="value_rank" title="Value score 0–100. 100 = most undervalued.">Value <span class="si">↕</span></th>
-  <th class="sc" data-col="quality_rank" title="Quality score 0–100. 100 = highest quality business.">Quality <span class="si">↕</span></th>
-  <th class="sc" data-col="momentum_rank" title="Momentum score 0–100. 100 = strongest price trend.">Momentum <span class="si">↕</span></th>
-  <th class="sc act" data-col="qvm_rank" title="StockRank 0–100. Composite of Value + Quality + Momentum.">StockRank™ <span class="si">↓</span></th>
-</tr></thead>
+<thead id="thead">
+<tr>
+  <th data-col="" data-type="n">#</th>
+  <th data-col="ticker" data-type="s">Ticker <span class="arr">↕</span></th>
+  <th data-col="name" data-type="s">Company <span class="arr">↕</span></th>
+  <th data-col="sector" data-type="s">Sector <span class="arr">↕</span></th>
+  <th class="r" data-col="pe" data-type="n">P/E <span class="arr">↕</span></th>
+  <th class="r" data-col="pb" data-type="n">P/B <span class="arr">↕</span></th>
+  <th class="r" data-col="roe" data-type="n">ROE% <span class="arr">↕</span></th>
+  <th class="r" data-col="op_margin" data-type="n">Op.Margin% <span class="arr">↕</span></th>
+  <th class="r" data-col="ret_12m" data-type="n">12M% <span class="arr">↕</span></th>
+  <th class="c" data-col="value_rank" data-type="n">Value <span class="arr">↕</span></th>
+  <th class="c" data-col="quality_rank" data-type="n">Quality <span class="arr">↕</span></th>
+  <th class="c" data-col="momentum_rank" data-type="n">Momentum <span class="arr">↕</span></th>
+  <th class="c" data-col="qvm_rank" data-type="n">StockRank™ <span class="arr">↓</span></th>
+</tr>
+</thead>
 <tbody id="tbody"></tbody>
 </table>
 </div>
@@ -165,152 +151,220 @@ footer a{color:var(--accent);text-decoration:none}
 </div>
 
 <script>
-const DATA_URL = "data/scores.json";
-let allStocks=[], sortCol="qvm_rank", sortDir=-1, filterQ="", filterSec="", top10Only=false;
+// ── State ─────────────────────────────────────────────────────────────────
+var ALL = [];          // full stock list from JSON, never mutated
+var sortCol = 'qvm_rank';
+var sortAsc = false;   // false = descending (high first), true = ascending
+var filterText = '';
+var filterSector = '';
+var showTop10 = false;
 
-/* Score → colour class */
-function circleClass(v) {
-  if (v == null || isNaN(v)) return "cn2";
-  const n = Math.round(v);
-  if (n >= 80) return "c80";
-  if (n >= 60) return "c60";
-  if (n >= 40) return "c40";
-  if (n >= 20) return "c20";
-  return "c0";
+// ── Helpers ───────────────────────────────────────────────────────────────
+function f1(v){ return (v === null || v === undefined || isNaN(v)) ? '—' : Number(v).toFixed(1); }
+function avg(arr){
+  var a = arr.filter(function(x){ return x !== null && x !== undefined && !isNaN(x); });
+  return a.length ? Math.round(a.reduce(function(s,x){ return s+x; }, 0) / a.length) : '—';
 }
 
-/* Render one score circle. lg=true for StockRank (bigger) */
-function circle(v, lg) {
-  const cls  = circleClass(v);
-  const size = lg ? "lg" : "";
-  const lbl  = (v == null || isNaN(v)) ? "—" : Math.round(v);
-  return `<div class="sc-wrap"><span class="circle ${cls} ${size}">${lbl}</span></div>`;
+function circleClass(v){
+  if(v === null || v === undefined || isNaN(v)) return 'g0';
+  var n = Math.round(v);
+  if(n >= 80) return 'g5';
+  if(n >= 60) return 'g4';
+  if(n >= 40) return 'g3';
+  if(n >= 20) return 'g2';
+  return 'g1';
 }
 
-const f1  = v => (v==null||isNaN(v)) ? "—" : Number(v).toFixed(1);
-const avg = arr => {
-  const a = arr.filter(x => x!=null && !isNaN(x));
-  return a.length ? Math.round(a.reduce((s,x)=>s+x,0)/a.length) : "—";
-};
+function circle(v, large){
+  var cls = circleClass(v);
+  var sz  = large ? 'circle lg ' : 'circle ';
+  var lbl = (v === null || v === undefined || isNaN(v)) ? '—' : Math.round(v);
+  return '<span class="' + sz + cls + '">' + lbl + '</span>';
+}
 
-function getFiltered() {
-  let rows = allStocks.slice();
-  if (filterSec) rows = rows.filter(r => r.sector === filterSec);
-  if (filterQ) {
-    const q = filterQ.toLowerCase();
-    rows = rows.filter(r =>
-      (r.ticker||"").toLowerCase().includes(q) ||
-      (r.name||"").toLowerCase().includes(q)
-    );
-  }
-  rows.sort((a,b) => {
-    if (!sortCol) return 0;
-    const av = a[sortCol] ?? (sortDir===-1 ? -Infinity : Infinity);
-    const bv = b[sortCol] ?? (sortDir===-1 ? -Infinity : Infinity);
-    if (typeof av==="string") return sortDir * av.localeCompare(bv);
-    return sortDir * (bv - av);
+// ── Filter + Sort ─────────────────────────────────────────────────────────
+function getRows(){
+  // 1. filter
+  var rows = ALL.filter(function(s){
+    if(filterSector && s.sector !== filterSector) return false;
+    if(filterText){
+      var q = filterText.toLowerCase();
+      var tk = (s.ticker || '').toLowerCase();
+      var nm = (s.name   || '').toLowerCase();
+      if(tk.indexOf(q) === -1 && nm.indexOf(q) === -1) return false;
+    }
+    return true;
   });
-  if (top10Only) rows = rows.slice(0, 10);
+
+  // 2. sort
+  if(sortCol){
+    rows.sort(function(a, b){
+      var av = a[sortCol];
+      var bv = b[sortCol];
+      // nulls always last
+      if(av === null || av === undefined){ return 1; }
+      if(bv === null || bv === undefined){ return -1; }
+      var cmp = (typeof av === 'string') ? av.localeCompare(bv) : av - bv;
+      return sortAsc ? cmp : -cmp;
+    });
+  }
+
+  // 3. top10 slice AFTER sort (so we show top 10 by whatever sort is active)
+  if(showTop10) rows = rows.slice(0, 10);
+
   return rows;
 }
 
-function render() {
-  const rows = getFiltered();
+// ── Render ────────────────────────────────────────────────────────────────
+function render(){
+  var rows = getRows();
 
-  /* Top 10 always based on full QVM sort, unfiltered */
-  const top10 = new Set(
-    allStocks.slice()
-      .sort((a,b) => (b.qvm_rank||0)-(a.qvm_rank||0))
-      .slice(0,10).map(s=>s.ticker)
-  );
+  // top-10 set always by QVM descending regardless of current sort
+  var top10set = {};
+  ALL.slice().sort(function(a,b){
+    return (b.qvm_rank || 0) - (a.qvm_rank || 0);
+  }).slice(0,10).forEach(function(s){ top10set[s.ticker] = true; });
 
-  document.getElementById("cn").textContent   = allStocks.length;
-  document.getElementById("cv").textContent   = avg(allStocks.map(s=>s.value_rank));
-  document.getElementById("cq").textContent   = avg(allStocks.map(s=>s.quality_rank));
-  document.getElementById("cm").textContent   = avg(allStocks.map(s=>s.momentum_rank));
-  document.getElementById("cqvm").textContent = avg(allStocks.map(s=>s.qvm_rank));
-  document.getElementById("cnt").textContent  = rows.length + " stocks";
+  // update summary cards
+  document.getElementById('c-n').textContent   = ALL.length;
+  document.getElementById('c-v').textContent   = avg(ALL.map(function(s){ return s.value_rank; }));
+  document.getElementById('c-q').textContent   = avg(ALL.map(function(s){ return s.quality_rank; }));
+  document.getElementById('c-m').textContent   = avg(ALL.map(function(s){ return s.momentum_rank; }));
+  document.getElementById('c-qvm').textContent = avg(ALL.map(function(s){ return s.qvm_rank; }));
+  document.getElementById('cnt').textContent   = rows.length + ' stocks';
 
-  const html = rows.map((s,i) => {
-    const isTop = top10.has(s.ticker);
-    const ret12 = s.ret_12m!=null ? ((s.ret_12m>=0?"+":"")+f1(s.ret_12m)+"%") : "—";
-    const rCls  = s.ret_12m==null?"num":s.ret_12m>=0?"num pos":"num neg";
-    const roCls = s.roe==null?"num":s.roe>=0?"num pos":"num neg";
-    const oCls  = s.op_margin==null?"num":s.op_margin>=0?"num pos":"num neg";
+  var html = '';
+  for(var i = 0; i < rows.length; i++){
+    var s = rows[i];
+    var isTop = top10set[s.ticker] ? true : false;
 
-    return `<tr class="${isTop?"top10":""}">
-<td class="rn">${i+1}</td>
-<td class="tk">${s.ticker}</td>
-<td class="nm" title="${s.name||""}">${s.name||"—"}</td>
-<td class="sc-col" title="${s.sector||""}">${s.sector||"—"}</td>
-<td class="num">${f1(s.pe)}</td>
-<td class="num">${f1(s.pb)}</td>
-<td class="${roCls}">${f1(s.roe)}</td>
-<td class="${oCls}">${f1(s.op_margin)}</td>
-<td class="${rCls}">${ret12}</td>
-<td>${circle(s.value_rank)}</td>
-<td>${circle(s.quality_rank)}</td>
-<td>${circle(s.momentum_rank)}</td>
-<td>${circle(s.qvm_rank, true)}</td>
-</tr>`;
-  }).join("");
+    var ret12 = (s.ret_12m !== null && s.ret_12m !== undefined)
+      ? ((s.ret_12m >= 0 ? '+' : '') + f1(s.ret_12m) + '%') : '—';
+    var rCls  = (s.ret_12m === null || s.ret_12m === undefined) ? 'r' : (s.ret_12m >= 0 ? 'r pos' : 'r neg');
+    var roeCls = (s.roe === null || s.roe === undefined) ? 'r' : (s.roe >= 0 ? 'r pos' : 'r neg');
+    var opmCls = (s.op_margin === null || s.op_margin === undefined) ? 'r' : (s.op_margin >= 0 ? 'r pos' : 'r neg');
 
-  document.getElementById("tbody").innerHTML = html ||
-    `<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--muted)">No results</td></tr>`;
+    html += '<tr class="' + (isTop ? 'top10' : '') + '">'
+      + '<td class="rn">'  + (i+1) + '</td>'
+      + '<td class="tk">'  + (s.ticker || '') + '</td>'
+      + '<td class="nm" title="' + (s.name||'') + '">' + (s.name || '—') + '</td>'
+      + '<td class="se" title="' + (s.sector||'') + '">' + (s.sector || '—') + '</td>'
+      + '<td class="r">'   + f1(s.pe)       + '</td>'
+      + '<td class="r">'   + f1(s.pb)       + '</td>'
+      + '<td class="'+ roeCls +'">' + f1(s.roe) + '</td>'
+      + '<td class="'+ opmCls+'">' + f1(s.op_margin) + '</td>'
+      + '<td class="'+ rCls  +'">' + ret12 + '</td>'
+      + '<td class="c">'   + circle(s.value_rank)    + '</td>'
+      + '<td class="c">'   + circle(s.quality_rank)  + '</td>'
+      + '<td class="c">'   + circle(s.momentum_rank) + '</td>'
+      + '<td class="c">'   + circle(s.qvm_rank, true) + '</td>'
+      + '</tr>';
+  }
+
+  document.getElementById('tbody').innerHTML = html ||
+    '<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--muted)">No results</td></tr>';
 }
 
-/* Sort on header click */
-document.querySelectorAll("thead th[data-col]").forEach(th => {
-  th.addEventListener("click", () => {
-    const col = th.dataset.col;
-    if (!col) return;
-    sortDir = (sortCol===col) ? sortDir*-1 : -1;
+// ── Header sort clicks ────────────────────────────────────────────────────
+document.getElementById('thead').addEventListener('click', function(e){
+  var th = e.target.closest('th[data-col]');
+  if(!th) return;
+  var col = th.getAttribute('data-col');
+  if(!col) return;
+
+  if(sortCol === col){
+    sortAsc = !sortAsc;       // same column → flip direction
+  } else {
     sortCol = col;
-    document.querySelectorAll("thead th").forEach(h => {
-      h.classList.remove("act");
-      const si=h.querySelector(".si"); if(si) si.textContent="↕";
-    });
-    th.classList.add("act");
-    const si=th.querySelector(".si"); if(si) si.textContent=sortDir===-1?"↓":"↑";
-    render();
-  });
+    sortAsc = false;          // new column → start descending
+  }
+
+  // update header arrows
+  var allTh = document.querySelectorAll('thead th');
+  for(var i = 0; i < allTh.length; i++){
+    allTh[i].classList.remove('active');
+    var arr = allTh[i].querySelector('.arr');
+    if(arr) arr.textContent = '↕';
+  }
+  th.classList.add('active');
+  var arr = th.querySelector('.arr');
+  if(arr) arr.textContent = sortAsc ? '↑' : '↓';
+
+  render();
 });
 
-document.getElementById("search").addEventListener("input", e=>{filterQ=e.target.value.trim();render();});
-document.getElementById("sec-filter").addEventListener("change", e=>{filterSec=e.target.value;render();});
-document.getElementById("t10only").addEventListener("change", e=>{top10Only=e.target.checked;render();});
+// ── Toolbar events ────────────────────────────────────────────────────────
+document.getElementById('srch').addEventListener('input', function(){
+  filterText = this.value.trim();
+  render();
+});
 
-/* Load scores.json */
-async function loadData() {
-  try {
-    const res = await fetch(DATA_URL+"?_="+Date.now());
-    if (!res.ok) throw new Error("HTTP "+res.status);
-    const data = await res.json();
-    allStocks = data.stocks || [];
-    document.getElementById("upd").textContent = "Updated: "+(data.updated||"unknown");
+document.getElementById('sec').addEventListener('change', function(){
+  filterSector = this.value;
+  render();
+});
 
-    const sectors = [...new Set(allStocks.map(s=>s.sector).filter(Boolean))].sort();
-    const sel = document.getElementById("sec-filter");
-    sectors.forEach(sec=>{ const o=document.createElement("option"); o.value=o.textContent=sec; sel.appendChild(o); });
+document.getElementById('t10').addEventListener('change', function(){
+  showTop10 = this.checked;
+  render();
+});
 
-    document.getElementById("status").style.display="none";
-    document.getElementById("table-wrap").style.display="";
+// ── Load data ─────────────────────────────────────────────────────────────
+function loadData(){
+  var url = 'data/scores.json?_=' + Date.now();
+  fetch(url)
+    .then(function(r){
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data){
+      ALL = data.stocks || [];
+      document.getElementById('upd').textContent = 'Updated: ' + (data.updated || 'unknown');
 
-    /* Default: StockRank descending — rank 100 at top */
-    sortCol="qvm_rank"; sortDir=-1;
-    const qvmTh=document.querySelector("thead th[data-col='qvm_rank']");
-    if(qvmTh){
-      qvmTh.classList.add("act");
-      const si=qvmTh.querySelector(".si"); if(si) si.textContent="↓";
-    }
-    render();
-  } catch(err) {
-    document.getElementById("status").innerHTML=
-      `<div style="color:#ef9a9a">Could not load <code>${DATA_URL}</code><br><small>${err.message}</small></div>
-       <p style="margin-top:14px;font-size:12px;color:var(--muted)">
-         Make sure process.py has run and data/scores.json exists in the repo.
-       </p>`;
-  }
+      // populate sector dropdown
+      var sectors = [];
+      var seen = {};
+      ALL.forEach(function(s){
+        if(s.sector && !seen[s.sector]){ seen[s.sector]=true; sectors.push(s.sector); }
+      });
+      sectors.sort();
+      var sel = document.getElementById('sec');
+      sectors.forEach(function(sec){
+        var o = document.createElement('option');
+        o.value = o.textContent = sec;
+        sel.appendChild(o);
+      });
+
+      document.getElementById('status').style.display = 'none';
+      document.getElementById('tw').style.display = '';
+
+      // set default sort: StockRank descending
+      sortCol = 'qvm_rank';
+      sortAsc = false;
+
+      // mark StockRank header as active
+      var allTh = document.querySelectorAll('thead th');
+      for(var i = 0; i < allTh.length; i++){
+        var col = allTh[i].getAttribute('data-col');
+        allTh[i].classList.remove('active');
+        var arr = allTh[i].querySelector('.arr');
+        if(arr) arr.textContent = '↕';
+        if(col === 'qvm_rank'){
+          allTh[i].classList.add('active');
+          if(arr) arr.textContent = '↓';
+        }
+      }
+
+      render();
+    })
+    .catch(function(err){
+      document.getElementById('status').innerHTML =
+        '<div style="color:#ef9a9a">Could not load <code>data/scores.json</code><br>'
+        + '<small>' + err.message + '</small></div>'
+        + '<p style="margin-top:14px;font-size:12px;color:var(--muted)">Make sure '
+        + 'process.py has run and data/scores.json exists in the repo.</p>';
+    });
 }
 
 loadData();
