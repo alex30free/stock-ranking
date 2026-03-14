@@ -31,7 +31,7 @@ COLUMN_MAP = {
     "market_cap":    "Börsvärde - Senaste SEK",
     "pe":            "P/E - Senaste",
     "peg":           "PEG - Senaste",
-    "beta":          "Beta - Senaste",
+    "beta":          "Beta - 1år",
     "ev_ebit":       "EV/EBIT - Senaste",
     "ev_sales":      "EV/S - Senaste",
     "p_fcf":         "P/FCF - Senaste",
