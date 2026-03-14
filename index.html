@@ -425,6 +425,7 @@ var STYLE_DESC={
   'Falling Star':  'High Q · Low V · Low M — Quality still there but price stalling and expensive. Former high-flyer.',
   'Sucker Stock':  'Low Q · Low V · Low M — Poor on all counts. Historically the worst performing archetype. Avoid.',
 };
+var STYLE_CSS={
   'Super Stock':'st-ss','High Flyer':'st-hf','Contrarian':'st-co',
   'Turnaround':'st-ta','Sucker Stock':'st-su','Momentum Trap':'st-mt',
   'Falling Star':'st-fs','Value Trap':'st-vt'
@@ -745,16 +746,21 @@ document.getElementById('t10').addEventListener('change',function(){showTop10=th
 fetch('data/scores.json?_='+Date.now())
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
-    ALL=data.stocks||[];
-    document.getElementById('upd').textContent='Updated: '+(data.updated||'unknown');
-    buildIndex(ALL);
-    computeTop10();
-    updateCounts();
-    buildSectorChips(ALL);
-    document.getElementById('status').style.display='none';
-    document.getElementById('tw').style.display='';
-    sortCol='qvm_rank'; sortAsc=false;
-    rebuildSort(); render();
+    try {
+      ALL=data.stocks||[];
+      document.getElementById('upd').textContent='Updated: '+(data.updated||'unknown');
+      buildIndex(ALL);
+      computeTop10();
+      updateCounts();
+      buildSectorChips(ALL);
+      document.getElementById('status').style.display='none';
+      document.getElementById('tw').style.display='';
+      sortCol='qvm_rank'; sortAsc=false;
+      rebuildSort(); render();
+    } catch(e) {
+      document.getElementById('status').innerHTML=
+        '<div style="color:#ef9a9a">JS error: '+e.message+'<br><small>'+e.stack+'</small></div>';
+    }
   })
   .catch(function(err){
     document.getElementById('status').innerHTML=
