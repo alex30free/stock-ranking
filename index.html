@@ -197,8 +197,8 @@ function buildIndex(stocks) {
   IDX = [];
   for (var i = 0; i < stocks.length; i++) {
     var s  = stocks[i];
-    var tk = (s.ticker || '').toLowerCase();
-    var nm = (s.name   || '').toLowerCase();
+    var tk = String(s.ticker || '').toLowerCase();
+    var nm = String(s.name   || '').toLowerCase();
     IDX.push({ i: i, tk: tk, nm: nm, both: tk + ' ' + nm });
   }
 }
