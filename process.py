@@ -1,9 +1,11 @@
 """
 process.py — QVM Stock Ranking Engine
 --------------------------------------
-Reads a Börsdata CSV export, computes Value / Quality / Momentum / QVM
-percentile scores, assigns Stockopedia-style archetypes, and writes
-data/scores.json.
+Scores are UNIQUE across all stocks for every column.
+Formula: score = 100 * (N - rank) / (N - 1)
+Rank 1 (best) → score 100.00
+Rank N (worst) → score 0.00
+No two stocks share the same score in any column.
 
 Usage:
     python process.py --input data/Borsdata_export.csv
@@ -46,7 +48,7 @@ COLUMN_MAP = {
 }
 
 # ---------------------------------------------------------------------------
-# Weights
+# Factor weights
 # ---------------------------------------------------------------------------
 VALUE_WEIGHTS = {
     "inv_pe":       0.20,
@@ -70,35 +72,31 @@ MOMENTUM_WEIGHTS = {
     "ret_6m":  0.30,
     "ret_3m":  0.20,
 }
-QVM_WEIGHTS = {"value": 1/3, "quality": 1/3, "momentum": 1/3}
 
-# Minimum data threshold — removes ETFs, warrants, shells
 MIN_RAW_FIELDS    = 3
 MIN_PILLAR_SCORES = 2
 
 # ---------------------------------------------------------------------------
-# Stockopedia 8-archetype style classification
-# Exactly mirrors the screenshot: 8 unique Q/V/M combinations
+# Stockopedia 8-archetype style map
 # ---------------------------------------------------------------------------
 STYLE_MAP = {
-    (True,  True,  True):  "Super Stock",    # High Q, High V, High M
-    (True,  False, True):  "High Flyer",     # High Q, Low V,  High M
-    (True,  True,  False): "Contrarian",     # High Q, High V, Low M
-    (False, True,  True):  "Turnaround",     # Low Q,  High V, High M
-    (False, False, False): "Sucker Stock",   # Low Q,  Low V,  Low M
-    (False, False, True):  "Momentum Trap",  # Low Q,  Low V,  High M
-    (True,  False, False): "Falling Star",   # High Q, Low V,  Low M
-    (False, True,  False): "Value Trap",     # Low Q,  High V, Low M
+    (True,  True,  True):  "Super Stock",
+    (True,  False, True):  "High Flyer",
+    (True,  True,  False): "Contrarian",
+    (False, True,  True):  "Turnaround",
+    (False, False, False): "Sucker Stock",
+    (False, False, True):  "Momentum Trap",
+    (True,  False, False): "Falling Star",
+    (False, True,  False): "Value Trap",
 }
 
 def classify_style(q, v, m):
-    """Return Stockopedia archetype string. Returns None if any score missing."""
     if q is None or v is None or m is None:
         return None
     return STYLE_MAP.get((q >= 50, v >= 50, m >= 50))
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Core helpers
 # ---------------------------------------------------------------------------
 def clean_numeric(series):
     s = series.astype(str).str.strip()
@@ -107,31 +105,6 @@ def clean_numeric(series):
     s = s.str.replace('\xa0', '', regex=False)
     s = s.str.replace(' ', '', regex=False)
     return pd.to_numeric(s, errors='coerce')
-
-def pct_rank(series):
-    mask = series.notna()
-    result = series * float('nan')
-    if mask.sum() < 2:
-        return result
-    vals = series[mask].values
-    r = rankdata(vals, method='average')
-    result[mask] = (r - 1) / (len(r) - 1) * 100
-    return result
-
-def unique_int_rank(series):
-    """
-    Convert a float percentile series to unique integer ranks 1..N.
-    Rank 1 = highest score (best). No ties — random tiebreak via stable sort.
-    """
-    mask = series.notna()
-    result = pd.Series([None] * len(series), dtype=object)
-    if mask.sum() == 0:
-        return result
-    # argsort descending — stable so ties broken by original order
-    ordered = series[mask].sort_values(ascending=False, kind='mergesort')
-    for rank_pos, idx in enumerate(ordered.index, start=1):
-        result[idx] = rank_pos
-    return result
 
 def winsorize(series, low=0.02, high=0.98):
     lo, hi = series.quantile(low), series.quantile(high)
@@ -142,17 +115,53 @@ def safe_invert(series):
     s[s <= 0] = float('nan')
     return 1.0 / s
 
-def weighted_score(df, weight_dict):
+def weighted_raw_score(df, weight_dict):
+    """
+    Weighted average of 0-100 percentile ranks (used ONLY internally
+    to get a composite raw score for final ranking — not shown to user).
+    """
+    from scipy.stats import rankdata as _rd
     total_w     = pd.Series(0.0, index=df.index)
     total_score = pd.Series(0.0, index=df.index)
     for col, w in weight_dict.items():
         if col not in df.columns:
             continue
-        ranked = pct_rank(df[col])
-        ok = ranked.notna()
-        total_score[ok] += ranked[ok] * w
-        total_w[ok]     += w
+        mask = df[col].notna()
+        if mask.sum() < 2:
+            continue
+        # percentile rank of this factor (0-100)
+        vals = df.loc[mask, col].values
+        r = _rd(vals, method='average')
+        pct = (r - 1) / (len(r) - 1) * 100
+        total_score[mask] += pct * w
+        total_w[mask]     += w
     return total_score / total_w.replace(0, float('nan'))
+
+def unique_score(series):
+    """
+    Convert a raw composite score series into UNIQUE scores on a 0-100 scale.
+
+    Method:
+      1. Rank stocks by raw score (higher raw = better = lower rank number).
+      2. score_i = 100 * (N - rank_i) / (N - 1)
+         → rank 1 (best)  gets score 100.00
+         → rank N (worst) gets score 0.00
+      3. Round to 2 decimal places — guaranteed unique for any N.
+
+    Stocks with NaN raw score are excluded from ranking and get NaN score.
+    """
+    mask = series.notna()
+    result = pd.Series([None] * len(series), dtype=float)
+    n = mask.sum()
+    if n < 2:
+        return result
+
+    vals = series[mask].values
+    # rank: highest val → rank 1  (ascending=False achieved by negating)
+    ranks = rankdata(-vals, method='ordinal')   # ordinal = no ties, ever
+    scores = [round(100.0 * (n - r) / (n - 1), 2) for r in ranks]
+    result[mask] = scores
+    return result
 
 # ---------------------------------------------------------------------------
 # Main pipeline
@@ -171,6 +180,7 @@ def build_scores(csv_path):
     df = df[df['ticker'].notna() & (df['ticker'] != '') & (df['ticker'] != 'nan')].copy()
     print(f"  After ticker filter: {len(df):,} rows")
 
+    # Parse numerics
     numeric_cols = [
         'market_cap', 'pe', 'pb', 'ev_ebit', 'ev_sales', 'p_fcf',
         'roe', 'roic', 'gross_margin', 'op_margin', 'net_margin',
@@ -181,10 +191,12 @@ def build_scores(csv_path):
         if col in df.columns:
             df[col] = clean_numeric(df[col])
 
+    # Winsorize
     for col in numeric_cols:
         if col in df.columns and df[col].notna().sum() > 20:
             df[col] = winsorize(df[col])
 
+    # Invert bad-is-high metrics
     for src, dst in [
         ('pe',       'inv_pe'),
         ('pb',       'inv_pb'),
@@ -196,22 +208,10 @@ def build_scores(csv_path):
         if src in df.columns:
             df[dst] = safe_invert(df[src])
 
-    # Pillar scores (0-100 percentile floats)
-    df['value_score']    = weighted_score(df, VALUE_WEIGHTS)
-    df['quality_score']  = weighted_score(df, QUALITY_WEIGHTS)
-    df['momentum_score'] = weighted_score(df, MOMENTUM_WEIGHTS)
-
-    df['value_rank']    = pct_rank(df['value_score']).round(1)
-    df['quality_rank']  = pct_rank(df['quality_score']).round(1)
-    df['momentum_rank'] = pct_rank(df['momentum_score']).round(1)
-
-    # QVM composite (0-100 percentile float)
-    qvm_raw = (
-        df['value_rank'].fillna(50)    * QVM_WEIGHTS['value']    +
-        df['quality_rank'].fillna(50)  * QVM_WEIGHTS['quality']  +
-        df['momentum_rank'].fillna(50) * QVM_WEIGHTS['momentum']
-    )
-    df['qvm_score'] = pct_rank(qvm_raw).round(1)
+    # Raw composite scores (internal use only)
+    df['_val_raw']  = weighted_raw_score(df, VALUE_WEIGHTS)
+    df['_qual_raw'] = weighted_raw_score(df, QUALITY_WEIGHTS)
+    df['_mom_raw']  = weighted_raw_score(df, MOMENTUM_WEIGHTS)
 
     # ── Filter: remove ETFs, shells, stubs ─────────────────────────────────
     raw_check = [c for c in [
@@ -221,36 +221,41 @@ def build_scores(csv_path):
     ] if c in df.columns]
 
     df['_raw_filled']    = df[raw_check].notna().sum(axis=1)
-    df['_pillar_filled'] = df[['value_rank','quality_rank','momentum_rank']].notna().sum(axis=1)
+    df['_pillar_filled'] = df[['_val_raw','_qual_raw','_mom_raw']].notna().sum(axis=1)
+
     before = len(df)
     df = df[
         (df['_raw_filled']    >= MIN_RAW_FIELDS) &
         (df['_pillar_filled'] >= MIN_PILLAR_SCORES)
-    ].copy()
-    print(f"  Removed {before-len(df)} ETFs/shells/stubs → {len(df):,} stocks remain")
+    ].copy().reset_index(drop=True)
+    print(f"  Removed {before - len(df)} ETFs/shells → {len(df):,} scoreable stocks")
 
-    # ── Unique integer ranks 1..N (no ties) ────────────────────────────────
-    # Re-rank within the filtered universe so rank 1 = best stock
-    df['value_rank']    = pct_rank(df['value_score']).round(1)
-    df['quality_rank']  = pct_rank(df['quality_score']).round(1)
-    df['momentum_rank'] = pct_rank(df['momentum_score']).round(1)
-    qvm_raw2 = (
-        df['value_rank'].fillna(50)    * QVM_WEIGHTS['value']    +
-        df['quality_rank'].fillna(50)  * QVM_WEIGHTS['quality']  +
-        df['momentum_rank'].fillna(50) * QVM_WEIGHTS['momentum']
+    # ── UNIQUE SCORES — each pillar ranked independently ───────────────────
+    # value_rank, quality_rank, momentum_rank: unique floats 0.00–100.00
+    df['value_rank']    = unique_score(df['_val_raw'])
+    df['quality_rank']  = unique_score(df['_qual_raw'])
+    df['momentum_rank'] = unique_score(df['_mom_raw'])
+
+    # QVM composite: weighted average of the three unique pillar scores
+    # then ranked again → also fully unique
+    df['_qvm_raw'] = (
+        df['value_rank'].fillna(50)    * (1/3) +
+        df['quality_rank'].fillna(50)  * (1/3) +
+        df['momentum_rank'].fillna(50) * (1/3)
     )
-    df['qvm_score'] = pct_rank(qvm_raw2).round(1)
+    df['qvm_rank'] = unique_score(df['_qvm_raw'])
 
-    # Unique integer ranks: 1 = best, N = worst
-    df['value_int']    = unique_int_rank(df['value_rank'])
-    df['quality_int']  = unique_int_rank(df['quality_rank'])
-    df['momentum_int'] = unique_int_rank(df['momentum_rank'])
-    df['qvm_int']      = unique_int_rank(df['qvm_score'])
+    # Verify uniqueness
+    for col in ['value_rank','quality_rank','momentum_rank','qvm_rank']:
+        vals = df[col].dropna()
+        assert len(vals) == len(vals.unique()), f"DUPLICATE in {col}!"
+    print(f"  Uniqueness check passed — all 4 score columns fully unique")
 
     # ── Style classification ────────────────────────────────────────────────
+    # Uses 50 as threshold (same as Stockopedia)
     df['style'] = df.apply(
         lambda r: classify_style(
-            r.get('quality_rank'), r.get('value_rank'), r.get('momentum_rank')
+            r['quality_rank'], r['value_rank'], r['momentum_rank']
         ), axis=1
     )
 
@@ -259,7 +264,7 @@ def build_scores(csv_path):
         if v is None: return None
         try:
             f = float(v)
-            return None if math.isnan(f) else round(f, 2)
+            return None if (math.isnan(f) or math.isinf(f)) else round(f, 2)
         except Exception:
             s = str(v)
             return None if s in ('nan','None','') else s
@@ -281,27 +286,26 @@ def build_scores(csv_path):
             'ret_12m':       fmt(row.get('ret_12m')),
             'ret_6m':        fmt(row.get('ret_6m')),
             'ret_3m':        fmt(row.get('ret_3m')),
-            # 0-100 percentile scores (for colour circles)
+            # UNIQUE scores — 0.00 to 100.00, no two stocks share same value
             'value_rank':    fmt(row.get('value_rank')),
             'quality_rank':  fmt(row.get('quality_rank')),
             'momentum_rank': fmt(row.get('momentum_rank')),
-            'qvm_rank':      fmt(row.get('qvm_score')),
-            # unique integer ranks (for sorting/display)
-            'value_pos':     int(row['value_int'])    if row.get('value_int')    is not None else None,
-            'quality_pos':   int(row['quality_int'])  if row.get('quality_int')  is not None else None,
-            'momentum_pos':  int(row['momentum_int']) if row.get('momentum_int') is not None else None,
-            'qvm_pos':       int(row['qvm_int'])      if row.get('qvm_int')      is not None else None,
-            # style archetype
+            'qvm_rank':      fmt(row.get('qvm_rank')),
             'style':         row.get('style') or '',
         })
 
-    # Sort: best QVM first (lowest integer rank = rank 1)
-    out.sort(key=lambda x: x['qvm_pos'] or 99999)
+    # Sort: best StockRank first (score 100 at top)
+    out.sort(key=lambda x: x['qvm_rank'] or 0, reverse=True)
+
+    # Add display rank number (1 = best)
+    for i, s in enumerate(out):
+        s['qvm_pos'] = i + 1
+
     return out
 
 # ---------------------------------------------------------------------------
 def main():
-    parser = argparse.ArgumentParser(description='QVM scoring from Börsdata CSV')
+    parser = argparse.ArgumentParser()
     parser.add_argument('--input',  default='data/Borsdata_export.csv')
     parser.add_argument('--output', default='data/scores.json')
     args = parser.parse_args()
@@ -319,13 +323,20 @@ def main():
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
     print(f"  Written {len(stocks):,} stocks → {args.output}")
-    print(f"  Top 5:")
-    for s in stocks[:5]:
-        print(f"    #{s['qvm_pos']:4}  {s['ticker']:12}  QVM={s['qvm_rank']}  style={s['style']}")
-    print(f"  Style counts:")
+    print(f"\n  Top 10 by StockRank:")
+    for s in stocks[:10]:
+        print(f"    #{s['qvm_pos']:4}  {s['ticker']:12}  QVM={s['qvm_rank']:6}  V={s['value_rank']:6}  Q={s['quality_rank']:6}  M={s['momentum_rank']:6}  {s['style']}")
+
+    print(f"\n  Score uniqueness verification:")
     from collections import Counter
-    sc = Counter(s['style'] for s in stocks)
-    for style, n in sorted(sc.items(), key=lambda x: -x[1]):
+    for key in ['value_rank','quality_rank','momentum_rank','qvm_rank']:
+        vals = [s[key] for s in stocks if s[key] is not None]
+        dupes = {k:v for k,v in Counter(vals).items() if v > 1}
+        print(f"    {key:15} {len(vals)} scores, {len(dupes)} duplicates ← {'OK' if not dupes else 'PROBLEM'}")
+
+    print(f"\n  Style distribution:")
+    from collections import Counter
+    for style, n in sorted(Counter(s['style'] for s in stocks).items(), key=lambda x:-x[1]):
         print(f"    {style:20} {n}")
 
 if __name__ == '__main__':
