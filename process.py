@@ -253,8 +253,8 @@ def build_scores(csv_path):
     out = []
     for _, row in df.iterrows():
         out.append({
-            'ticker':        fmt(row.get('ticker'))  or '',
-            'name':          fmt(row.get('name'))    or '',
+            'ticker':        str(row.get('ticker') or '').strip(),
+            'name':          str(row.get('name')   or '').strip(),
             'sector':        fmt(row.get('sector'))  or '',
             'market_cap':    fmt(row.get('market_cap')),
             'pe':            fmt(row.get('pe')),
