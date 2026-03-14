@@ -27,17 +27,47 @@ header{display:flex;align-items:center;justify-content:space-between;flex-wrap:w
 .card-value{font-size:28px;font-weight:700;font-family:monospace}
 .cn{color:var(--text)}.cv{color:#81c784}.cq{color:#64b5f6}.cm{color:#ffb74d}.cqvm{color:#81c784}
 
+/* ── Toolbar ── */
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
-.sw{position:relative;flex:1;min-width:200px}
-.sw svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:0.35}
-.si-input{width:100%;background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:8px 12px 8px 34px;color:var(--text);font-size:13px;outline:none;font-family:inherit}
-.si-input:focus{border-color:var(--accent)}
-.sec-sel{background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;cursor:pointer;font-family:inherit}
-.t10-lbl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;padding:8px 14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);user-select:none;white-space:nowrap}
+
+.search-box{position:relative;flex:1;min-width:220px}
+.search-box svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted)}
+.search-box input{
+  width:100%;background:var(--card);border:1px solid var(--border2);
+  border-radius:8px;padding:9px 36px 9px 36px;
+  color:var(--text);font-size:14px;outline:none;font-family:inherit;
+  transition:border-color .15s
+}
+.search-box input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(56,189,248,0.15)}
+.clear-btn{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:16px;line-height:1;padding:2px;display:none
+}
+.clear-btn:hover{color:var(--text)}
+
+.sec-sel{
+  background:var(--card);border:1px solid var(--border2);border-radius:8px;
+  padding:9px 12px;color:var(--text);font-size:13px;outline:none;
+  cursor:pointer;font-family:inherit
+}
+.t10-lbl{
+  display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);
+  cursor:pointer;padding:9px 14px;border:1px solid var(--border2);
+  border-radius:8px;background:var(--card);user-select:none;white-space:nowrap
+}
 .t10-lbl:hover{border-color:var(--gold);color:var(--gold)}
 .t10-lbl input{accent-color:var(--gold);cursor:pointer;width:14px;height:14px}
 .cnt{font-size:11px;color:var(--muted);font-family:monospace;white-space:nowrap;margin-left:auto}
 
+/* Search hint */
+.search-hint{
+  font-size:12px;color:var(--muted);padding:4px 2px;
+  min-height:22px;margin-bottom:6px
+}
+.search-hint mark{background:none;color:var(--accent);font-weight:600}
+
+/* Table */
 .tw{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;min-width:900px}
 thead th{
@@ -51,12 +81,12 @@ thead th.r{text-align:right}
 thead th.c{text-align:center}
 thead th:hover{color:var(--text)}
 thead th.active{color:#81c784}
-.arr{display:inline-block;margin-left:3px;opacity:0.3;font-size:9px;transition:opacity .15s}
+.arr{display:inline-block;margin-left:3px;opacity:0.3;font-size:9px}
 th.active .arr{opacity:1}
 
-tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr{border-bottom:1px solid var(--border);transition:background .08s}
 tbody tr:last-child{border-bottom:none}
-tbody tr:hover{background:rgba(255,255,255,0.025)}
+tbody tr:hover{background:rgba(255,255,255,0.028)}
 tbody tr.top10{background:var(--top10bg)}
 tbody tr.top10 td:first-child{border-left:2px solid var(--top10bl)}
 td{padding:9px 14px;font-size:12px;vertical-align:middle}
@@ -65,25 +95,22 @@ td.tk{font-family:monospace;font-weight:700;color:var(--accent);font-size:13px;w
 td.nm{max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 td.se{color:var(--muted);font-size:11px;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 td.r{text-align:right;font-family:monospace;color:var(--muted);font-size:12px}
-td.pos{color:#81c784}
-td.neg{color:#ef9a9a}
-td.c{text-align:center}
+td.pos{color:#81c784} td.neg{color:#ef9a9a} td.c{text-align:center}
 
-/* Score circles — Stockopedia style */
+/* highlight match in ticker/name */
+mark{background:rgba(56,189,248,0.25);color:var(--accent);border-radius:2px;font-style:normal}
+
+/* Score circles */
 .circle{
   display:inline-flex;align-items:center;justify-content:center;
   width:36px;height:36px;border-radius:50%;
   font-size:13px;font-weight:700;color:#fff;
-  font-family:monospace;letter-spacing:-0.5px;flex-shrink:0
+  font-family:monospace;letter-spacing:-0.5px
 }
 .circle.lg{width:42px;height:42px;font-size:15px}
-/* Colour bands matching Stockopedia */
-.g5{background:#1b5e20} /* 80-100 deep green  */
-.g4{background:#388e3c} /* 60-79  mid green   */
-.g3{background:#546e7a} /* 40-59  slate grey  */
-.g2{background:#e65100} /* 20-39  orange      */
-.g1{background:#b71c1c} /* 0-19   red         */
-.g0{background:#37474f;color:#78909c} /* null/— */
+.g5{background:#1b5e20}.g4{background:#388e3c}
+.g3{background:#546e7a}.g2{background:#e65100}
+.g1{background:#b71c1c}.g0{background:#37474f;color:#78909c}
 
 footer{margin-top:40px;text-align:center;font-size:11px;color:var(--muted);line-height:2}
 footer a{color:var(--accent);text-decoration:none}
@@ -107,38 +134,35 @@ footer a{color:var(--accent);text-decoration:none}
 </div>
 
 <div class="toolbar">
-  <div class="sw">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-    <input class="si-input" id="srch" type="text" placeholder="Search ticker or company…" autocomplete="off">
+  <div class="search-box">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" id="srch" placeholder="Type ticker or company name…" autocomplete="off" spellcheck="false">
+    <button class="clear-btn" id="clear-btn" title="Clear search">&times;</button>
   </div>
   <select class="sec-sel" id="sec"><option value="">All sectors</option></select>
-  <label class="t10-lbl">
-    <input type="checkbox" id="t10">
-    Show top 10 only
-  </label>
+  <label class="t10-lbl"><input type="checkbox" id="t10"> Show top 10 only</label>
   <span class="cnt" id="cnt">— stocks</span>
 </div>
+<div class="search-hint" id="hint"></div>
 
 <div id="status">Loading rankings…</div>
 <div class="tw" id="tw" style="display:none">
 <table>
-<thead id="thead">
-<tr>
-  <th data-col="" data-type="n">#</th>
-  <th data-col="ticker" data-type="s">Ticker <span class="arr">↕</span></th>
-  <th data-col="name" data-type="s">Company <span class="arr">↕</span></th>
-  <th data-col="sector" data-type="s">Sector <span class="arr">↕</span></th>
-  <th class="r" data-col="pe" data-type="n">P/E <span class="arr">↕</span></th>
-  <th class="r" data-col="pb" data-type="n">P/B <span class="arr">↕</span></th>
-  <th class="r" data-col="roe" data-type="n">ROE% <span class="arr">↕</span></th>
-  <th class="r" data-col="op_margin" data-type="n">Op.Margin% <span class="arr">↕</span></th>
-  <th class="r" data-col="ret_12m" data-type="n">12M% <span class="arr">↕</span></th>
-  <th class="c" data-col="value_rank" data-type="n">Value <span class="arr">↕</span></th>
-  <th class="c" data-col="quality_rank" data-type="n">Quality <span class="arr">↕</span></th>
-  <th class="c" data-col="momentum_rank" data-type="n">Momentum <span class="arr">↕</span></th>
-  <th class="c" data-col="qvm_rank" data-type="n">StockRank™ <span class="arr">↓</span></th>
-</tr>
-</thead>
+<thead id="thead"><tr>
+  <th data-col=""           >#</th>
+  <th data-col="ticker"     >Ticker <span class="arr">↕</span></th>
+  <th data-col="name"       >Company <span class="arr">↕</span></th>
+  <th data-col="sector"     >Sector <span class="arr">↕</span></th>
+  <th data-col="pe"      class="r">P/E <span class="arr">↕</span></th>
+  <th data-col="pb"      class="r">P/B <span class="arr">↕</span></th>
+  <th data-col="roe"     class="r">ROE% <span class="arr">↕</span></th>
+  <th data-col="op_margin" class="r">Op.Margin% <span class="arr">↕</span></th>
+  <th data-col="ret_12m" class="r">12M% <span class="arr">↕</span></th>
+  <th data-col="value_rank"    class="c">Value <span class="arr">↕</span></th>
+  <th data-col="quality_rank"  class="c">Quality <span class="arr">↕</span></th>
+  <th data-col="momentum_rank" class="c">Momentum <span class="arr">↕</span></th>
+  <th data-col="qvm_rank"      class="c active">StockRank™ <span class="arr">↓</span></th>
+</tr></thead>
 <tbody id="tbody"></tbody>
 </table>
 </div>
@@ -151,219 +175,356 @@ footer a{color:var(--accent);text-decoration:none}
 </div>
 
 <script>
-// ── State ─────────────────────────────────────────────────────────────────
-var ALL = [];          // full stock list from JSON, never mutated
-var sortCol = 'qvm_rank';
-var sortAsc = false;   // false = descending (high first), true = ascending
-var filterText = '';
+// ─────────────────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────────────────
+var ALL      = [];   // original array, never mutated
+var IDX      = [];   // pre-built search index: [{i, tk, nm, combined}]
+var SORTED   = [];   // current sorted view of ALL indices
+
+var sortCol  = 'qvm_rank';
+var sortAsc  = false;
 var filterSector = '';
-var showTop10 = false;
+var filterText   = '';
+var showTop10    = false;
 
-// ── Helpers ───────────────────────────────────────────────────────────────
-function f1(v){ return (v === null || v === undefined || isNaN(v)) ? '—' : Number(v).toFixed(1); }
-function avg(arr){
-  var a = arr.filter(function(x){ return x !== null && x !== undefined && !isNaN(x); });
-  return a.length ? Math.round(a.reduce(function(s,x){ return s+x; }, 0) / a.length) : '—';
+// ─────────────────────────────────────────────────────────
+// Build search index once after data loads
+// Each entry stores lowercased versions so search never
+// calls toLowerCase() inside the hot loop
+// ─────────────────────────────────────────────────────────
+function buildIndex(stocks) {
+  IDX = [];
+  for (var i = 0; i < stocks.length; i++) {
+    var s  = stocks[i];
+    var tk = (s.ticker || '').toLowerCase();
+    var nm = (s.name   || '').toLowerCase();
+    IDX.push({ i: i, tk: tk, nm: nm, both: tk + ' ' + nm });
+  }
 }
 
-function circleClass(v){
-  if(v === null || v === undefined || isNaN(v)) return 'g0';
-  var n = Math.round(v);
-  if(n >= 80) return 'g5';
-  if(n >= 60) return 'g4';
-  if(n >= 40) return 'g3';
-  if(n >= 20) return 'g2';
-  return 'g1';
-}
+// ─────────────────────────────────────────────────────────
+// Fast search — returns array of stock indices that match
+// Uses pre-built index, no object allocation in hot path
+// ─────────────────────────────────────────────────────────
+function search(q) {
+  if (!q) return null;  // null = no filter
+  var result = [];
+  // Support multi-word: all words must match somewhere
+  var words = q.toLowerCase().split(/\s+/).filter(function(w){ return w.length > 0; });
+  if (words.length === 0) return null;
 
-function circle(v, large){
-  var cls = circleClass(v);
-  var sz  = large ? 'circle lg ' : 'circle ';
-  var lbl = (v === null || v === undefined || isNaN(v)) ? '—' : Math.round(v);
-  return '<span class="' + sz + cls + '">' + lbl + '</span>';
-}
-
-// ── Filter + Sort ─────────────────────────────────────────────────────────
-function getRows(){
-  // 1. filter
-  var rows = ALL.filter(function(s){
-    if(filterSector && s.sector !== filterSector) return false;
-    if(filterText){
-      var q = filterText.toLowerCase();
-      var tk = (s.ticker || '').toLowerCase();
-      var nm = (s.name   || '').toLowerCase();
-      if(tk.indexOf(q) === -1 && nm.indexOf(q) === -1) return false;
+  for (var i = 0; i < IDX.length; i++) {
+    var entry = IDX[i];
+    var ok = true;
+    for (var w = 0; w < words.length; w++) {
+      if (entry.both.indexOf(words[w]) === -1) { ok = false; break; }
     }
-    return true;
-  });
+    if (ok) result.push(entry.i);
+  }
+  return result;
+}
 
-  // 2. sort
-  if(sortCol){
-    rows.sort(function(a, b){
-      var av = a[sortCol];
-      var bv = b[sortCol];
-      // nulls always last
-      if(av === null || av === undefined){ return 1; }
-      if(bv === null || bv === undefined){ return -1; }
-      var cmp = (typeof av === 'string') ? av.localeCompare(bv) : av - bv;
-      return sortAsc ? cmp : -cmp;
-    });
+// ─────────────────────────────────────────────────────────
+// Sort ALL into SORTED array of indices
+// ─────────────────────────────────────────────────────────
+function rebuildSort() {
+  SORTED = [];
+  for (var i = 0; i < ALL.length; i++) SORTED.push(i);
+
+  if (!sortCol) return;
+
+  SORTED.sort(function(ai, bi) {
+    var av = ALL[ai][sortCol];
+    var bv = ALL[bi][sortCol];
+    if (av === null || av === undefined) return  1;
+    if (bv === null || bv === undefined) return -1;
+    var cmp = (typeof av === 'string') ? av.localeCompare(bv) : (av - bv);
+    return sortAsc ? cmp : -cmp;
+  });
+}
+
+// ─────────────────────────────────────────────────────────
+// Get final list of stock indices to display
+// ─────────────────────────────────────────────────────────
+function getVisible() {
+  var matchSet = null;
+
+  // search filter
+  if (filterText.trim().length > 0) {
+    var hits = search(filterText.trim());
+    matchSet = {};
+    for (var h = 0; h < hits.length; h++) matchSet[hits[h]] = true;
   }
 
-  // 3. top10 slice AFTER sort (so we show top 10 by whatever sort is active)
-  if(showTop10) rows = rows.slice(0, 10);
+  // sector filter
+  var sectorActive = filterSector.length > 0;
 
-  return rows;
+  var result = [];
+  for (var j = 0; j < SORTED.length; j++) {
+    var idx = SORTED[j];
+    if (matchSet !== null && !matchSet[idx]) continue;
+    if (sectorActive && ALL[idx].sector !== filterSector) continue;
+    result.push(idx);
+  }
+
+  if (showTop10) result = result.slice(0, 10);
+  return result;
 }
 
-// ── Render ────────────────────────────────────────────────────────────────
-function render(){
-  var rows = getRows();
+// ─────────────────────────────────────────────────────────
+// Highlight matching text in a string
+// ─────────────────────────────────────────────────────────
+function highlight(str, q) {
+  if (!q || !str) return escHtml(str || '');
+  var words = q.trim().split(/\s+/).filter(function(w){ return w.length > 0; });
+  var result = escHtml(str);
+  for (var w = 0; w < words.length; w++) {
+    var word = words[w];
+    var re = new RegExp('(' + escRe(word) + ')', 'gi');
+    result = result.replace(re, '<mark>$1</mark>');
+  }
+  return result;
+}
 
-  // top-10 set always by QVM descending regardless of current sort
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escRe(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ─────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────
+function f1(v) {
+  return (v === null || v === undefined || isNaN(v)) ? '—' : Number(v).toFixed(1);
+}
+function avg(arr) {
+  var a = arr.filter(function(x){ return x !== null && x !== undefined && !isNaN(x); });
+  return a.length ? Math.round(a.reduce(function(s,x){ return s+x; },0)/a.length) : '—';
+}
+function circleClass(v) {
+  if (v === null || v === undefined || isNaN(v)) return 'g0';
+  var n = Math.round(v);
+  if (n >= 80) return 'g5';
+  if (n >= 60) return 'g4';
+  if (n >= 40) return 'g3';
+  if (n >= 20) return 'g2';
+  return 'g1';
+}
+function circle(v, lg) {
+  var cls = circleClass(v);
+  var lbl = (v === null || v === undefined || isNaN(v)) ? '—' : Math.round(v);
+  return '<span class="circle' + (lg?' lg':'') + ' ' + cls + '">' + lbl + '</span>';
+}
+
+// ─────────────────────────────────────────────────────────
+// Render
+// ─────────────────────────────────────────────────────────
+function render() {
+  var visible = getVisible();
+  var q = filterText.trim();
+
+  // top-10 highlight set — always QVM descending regardless of sort
   var top10set = {};
-  ALL.slice().sort(function(a,b){
-    return (b.qvm_rank || 0) - (a.qvm_rank || 0);
-  }).slice(0,10).forEach(function(s){ top10set[s.ticker] = true; });
+  for (var t = 0; t < Math.min(10, SORTED.length); t++) {
+    // SORTED when sorted by qvm desc = initial state; use a QVM-sorted pass
+    top10set[ALL[QVM_TOP10[t]].ticker] = true;
+  }
 
-  // update summary cards
+  // summary cards
   document.getElementById('c-n').textContent   = ALL.length;
   document.getElementById('c-v').textContent   = avg(ALL.map(function(s){ return s.value_rank; }));
   document.getElementById('c-q').textContent   = avg(ALL.map(function(s){ return s.quality_rank; }));
   document.getElementById('c-m').textContent   = avg(ALL.map(function(s){ return s.momentum_rank; }));
   document.getElementById('c-qvm').textContent = avg(ALL.map(function(s){ return s.qvm_rank; }));
-  document.getElementById('cnt').textContent   = rows.length + ' stocks';
+  document.getElementById('cnt').textContent   = visible.length + ' stocks';
 
+  // search hint
+  var hint = document.getElementById('hint');
+  if (q && visible.length === 0) {
+    hint.innerHTML = 'No results for <mark>' + escHtml(q) + '</mark>';
+  } else if (q) {
+    hint.innerHTML = '<mark>' + visible.length + '</mark> match' + (visible.length===1?'':'es') + ' for <mark>' + escHtml(q) + '</mark>';
+  } else {
+    hint.innerHTML = '';
+  }
+
+  // rows
   var html = '';
-  for(var i = 0; i < rows.length; i++){
-    var s = rows[i];
-    var isTop = top10set[s.ticker] ? true : false;
-
+  for (var i = 0; i < visible.length; i++) {
+    var s    = ALL[visible[i]];
+    var isTop = top10set[s.ticker];
     var ret12 = (s.ret_12m !== null && s.ret_12m !== undefined)
       ? ((s.ret_12m >= 0 ? '+' : '') + f1(s.ret_12m) + '%') : '—';
-    var rCls  = (s.ret_12m === null || s.ret_12m === undefined) ? 'r' : (s.ret_12m >= 0 ? 'r pos' : 'r neg');
-    var roeCls = (s.roe === null || s.roe === undefined) ? 'r' : (s.roe >= 0 ? 'r pos' : 'r neg');
-    var opmCls = (s.op_margin === null || s.op_margin === undefined) ? 'r' : (s.op_margin >= 0 ? 'r pos' : 'r neg');
+    var rCls   = s.ret_12m == null ? 'r' : (s.ret_12m  >= 0 ? 'r pos' : 'r neg');
+    var roeCls = s.roe      == null ? 'r' : (s.roe       >= 0 ? 'r pos' : 'r neg');
+    var opmCls = s.op_margin== null ? 'r' : (s.op_margin >= 0 ? 'r pos' : 'r neg');
 
     html += '<tr class="' + (isTop ? 'top10' : '') + '">'
-      + '<td class="rn">'  + (i+1) + '</td>'
-      + '<td class="tk">'  + (s.ticker || '') + '</td>'
-      + '<td class="nm" title="' + (s.name||'') + '">' + (s.name || '—') + '</td>'
-      + '<td class="se" title="' + (s.sector||'') + '">' + (s.sector || '—') + '</td>'
-      + '<td class="r">'   + f1(s.pe)       + '</td>'
-      + '<td class="r">'   + f1(s.pb)       + '</td>'
-      + '<td class="'+ roeCls +'">' + f1(s.roe) + '</td>'
-      + '<td class="'+ opmCls+'">' + f1(s.op_margin) + '</td>'
-      + '<td class="'+ rCls  +'">' + ret12 + '</td>'
-      + '<td class="c">'   + circle(s.value_rank)    + '</td>'
-      + '<td class="c">'   + circle(s.quality_rank)  + '</td>'
-      + '<td class="c">'   + circle(s.momentum_rank) + '</td>'
-      + '<td class="c">'   + circle(s.qvm_rank, true) + '</td>'
+      + '<td class="rn">' + (i+1) + '</td>'
+      + '<td class="tk">' + highlight(s.ticker, q) + '</td>'
+      + '<td class="nm" title="' + escHtml(s.name||'') + '">' + highlight(s.name, q) + '</td>'
+      + '<td class="se" title="' + escHtml(s.sector||'') + '">' + escHtml(s.sector||'—') + '</td>'
+      + '<td class="r">'     + f1(s.pe)        + '</td>'
+      + '<td class="r">'     + f1(s.pb)        + '</td>'
+      + '<td class="' + roeCls + '">' + f1(s.roe)       + '</td>'
+      + '<td class="' + opmCls + '">' + f1(s.op_margin) + '</td>'
+      + '<td class="' + rCls  + '">' + ret12           + '</td>'
+      + '<td class="c">' + circle(s.value_rank)    + '</td>'
+      + '<td class="c">' + circle(s.quality_rank)  + '</td>'
+      + '<td class="c">' + circle(s.momentum_rank) + '</td>'
+      + '<td class="c">' + circle(s.qvm_rank, true) + '</td>'
       + '</tr>';
   }
 
   document.getElementById('tbody').innerHTML = html ||
-    '<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--muted)">No results</td></tr>';
+    '<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--muted)">No results for "' + escHtml(q) + '"</td></tr>';
 }
 
-// ── Header sort clicks ────────────────────────────────────────────────────
-document.getElementById('thead').addEventListener('click', function(e){
-  var th = e.target.closest('th[data-col]');
-  if(!th) return;
-  var col = th.getAttribute('data-col');
-  if(!col) return;
+// ─────────────────────────────────────────────────────────
+// QVM top-10 index (pre-computed, never changes)
+// ─────────────────────────────────────────────────────────
+var QVM_TOP10 = [];
+function computeTop10() {
+  var idxs = [];
+  for (var i = 0; i < ALL.length; i++) idxs.push(i);
+  idxs.sort(function(a,b){ return (ALL[b].qvm_rank||0) - (ALL[a].qvm_rank||0); });
+  QVM_TOP10 = idxs.slice(0, 10);
+}
 
-  if(sortCol === col){
-    sortAsc = !sortAsc;       // same column → flip direction
+// ─────────────────────────────────────────────────────────
+// Sort header clicks
+// ─────────────────────────────────────────────────────────
+document.getElementById('thead').addEventListener('click', function(e) {
+  var th = e.target.closest('th[data-col]');
+  if (!th) return;
+  var col = th.getAttribute('data-col');
+  if (!col) return;
+
+  if (sortCol === col) {
+    sortAsc = !sortAsc;
   } else {
     sortCol = col;
-    sortAsc = false;          // new column → start descending
+    sortAsc = false;
   }
 
-  // update header arrows
   var allTh = document.querySelectorAll('thead th');
-  for(var i = 0; i < allTh.length; i++){
+  for (var i = 0; i < allTh.length; i++) {
     allTh[i].classList.remove('active');
     var arr = allTh[i].querySelector('.arr');
-    if(arr) arr.textContent = '↕';
+    if (arr) arr.textContent = '↕';
   }
   th.classList.add('active');
   var arr = th.querySelector('.arr');
-  if(arr) arr.textContent = sortAsc ? '↑' : '↓';
+  if (arr) arr.textContent = sortAsc ? '↑' : '↓';
 
+  rebuildSort();
   render();
 });
 
-// ── Toolbar events ────────────────────────────────────────────────────────
-document.getElementById('srch').addEventListener('input', function(){
-  filterText = this.value.trim();
+// ─────────────────────────────────────────────────────────
+// Search input — instant, no debounce needed with index
+// ─────────────────────────────────────────────────────────
+var srchEl     = document.getElementById('srch');
+var clearBtn   = document.getElementById('clear-btn');
+
+srchEl.addEventListener('input', function() {
+  filterText = this.value;
+  clearBtn.style.display = filterText.length > 0 ? 'block' : 'none';
   render();
 });
 
-document.getElementById('sec').addEventListener('change', function(){
+// Clear button
+clearBtn.addEventListener('click', function() {
+  srchEl.value = '';
+  filterText   = '';
+  this.style.display = 'none';
+  srchEl.focus();
+  render();
+});
+
+// Keyboard shortcut: press / to focus search from anywhere
+document.addEventListener('keydown', function(e) {
+  if (e.key === '/' && document.activeElement !== srchEl) {
+    e.preventDefault();
+    srchEl.focus();
+    srchEl.select();
+  }
+  if (e.key === 'Escape' && document.activeElement === srchEl) {
+    srchEl.value = '';
+    filterText   = '';
+    clearBtn.style.display = 'none';
+    srchEl.blur();
+    render();
+  }
+});
+
+// ─────────────────────────────────────────────────────────
+// Sector + Top10
+// ─────────────────────────────────────────────────────────
+document.getElementById('sec').addEventListener('change', function() {
   filterSector = this.value;
   render();
 });
 
-document.getElementById('t10').addEventListener('change', function(){
+document.getElementById('t10').addEventListener('change', function() {
   showTop10 = this.checked;
   render();
 });
 
-// ── Load data ─────────────────────────────────────────────────────────────
-function loadData(){
-  var url = 'data/scores.json?_=' + Date.now();
-  fetch(url)
-    .then(function(r){
-      if(!r.ok) throw new Error('HTTP ' + r.status);
+// ─────────────────────────────────────────────────────────
+// Load data
+// ─────────────────────────────────────────────────────────
+function loadData() {
+  fetch('data/scores.json?_=' + Date.now())
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     })
-    .then(function(data){
+    .then(function(data) {
       ALL = data.stocks || [];
       document.getElementById('upd').textContent = 'Updated: ' + (data.updated || 'unknown');
 
+      // build search index
+      buildIndex(ALL);
+
+      // pre-compute QVM top 10
+      computeTop10();
+
       // populate sector dropdown
-      var sectors = [];
-      var seen = {};
-      ALL.forEach(function(s){
-        if(s.sector && !seen[s.sector]){ seen[s.sector]=true; sectors.push(s.sector); }
-      });
+      var seen = {}, sectors = [];
+      for (var i = 0; i < ALL.length; i++) {
+        var sec = ALL[i].sector;
+        if (sec && !seen[sec]) { seen[sec] = true; sectors.push(sec); }
+      }
       sectors.sort();
       var sel = document.getElementById('sec');
-      sectors.forEach(function(sec){
+      for (var s = 0; s < sectors.length; s++) {
         var o = document.createElement('option');
-        o.value = o.textContent = sec;
+        o.value = o.textContent = sectors[s];
         sel.appendChild(o);
-      });
+      }
 
       document.getElementById('status').style.display = 'none';
       document.getElementById('tw').style.display = '';
 
-      // set default sort: StockRank descending
+      // initial sort: StockRank descending
       sortCol = 'qvm_rank';
       sortAsc = false;
-
-      // mark StockRank header as active
-      var allTh = document.querySelectorAll('thead th');
-      for(var i = 0; i < allTh.length; i++){
-        var col = allTh[i].getAttribute('data-col');
-        allTh[i].classList.remove('active');
-        var arr = allTh[i].querySelector('.arr');
-        if(arr) arr.textContent = '↕';
-        if(col === 'qvm_rank'){
-          allTh[i].classList.add('active');
-          if(arr) arr.textContent = '↓';
-        }
-      }
-
+      rebuildSort();
       render();
     })
-    .catch(function(err){
+    .catch(function(err) {
       document.getElementById('status').innerHTML =
         '<div style="color:#ef9a9a">Could not load <code>data/scores.json</code><br>'
         + '<small>' + err.message + '</small></div>'
-        + '<p style="margin-top:14px;font-size:12px;color:var(--muted)">Make sure '
-        + 'process.py has run and data/scores.json exists in the repo.</p>';
+        + '<p style="margin-top:14px;font-size:12px;color:var(--muted)">'
+        + 'Make sure process.py has run and data/scores.json exists in the repo.</p>';
     });
 }
 
