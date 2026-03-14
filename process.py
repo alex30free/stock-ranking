@@ -29,20 +29,15 @@ from scipy.stats import rankdata
 # Right = exact column header in your Börsdata CSV (change if yours differ)
 # ---------------------------------------------------------------------------
 COLUMN_MAP = {
-    # identity
     "ticker":        "Info - Ticker",
     "name":          "Bolagsnamn",
     "sector":        "Info - Sektor",
     "market_cap":    "Börsvärde - Senaste SEK",
-
-    # value
     "pe":            "P/E - Senaste",
     "pb":            "P/B - Senaste",
     "ev_ebit":       "EV/EBIT - Senaste",
     "ev_sales":      "EV/S - Senaste",
     "p_fcf":         "P/FCF - Senaste",
-
-    # quality
     "roe":           "ROE - Senaste",
     "roic":          "ROIC - Senaste",
     "gross_margin":  "Bruttomarg - Senaste",
@@ -51,8 +46,6 @@ COLUMN_MAP = {
     "current_ratio": "Balanslik. - Senaste",
     "nd_ebitda":     "N.skuld/Ebitda - Senaste",
     "rev_growth_3y": "Omsätt. tillv. - År. tillv. 3år",
-
-    # momentum
     "ret_3m":        "Kursutveck. - Utveck.  3m",
     "ret_6m":        "Kursutveck. - Utveck.  6m",
     "ret_12m":       "Kursutveck. - Utveck.  1år",
@@ -93,6 +86,16 @@ QVM_WEIGHTS = {
 }
 
 # ---------------------------------------------------------------------------
+# Minimum data threshold — stocks below this are excluded from rankings
+# Must have at least 3 raw data points AND at least 2 of 3 pillar scores
+# This removes index ETFs, shells, and newly listed stocks with no data
+# ---------------------------------------------------------------------------
+MIN_RAW_FIELDS   = 3   # out of: pe, pb, ev_ebit, p_fcf, roe, roic,
+                       #         gross_margin, op_margin, net_margin,
+                       #         ret_12m, ret_6m, ret_3m
+MIN_PILLAR_SCORES = 2  # out of: value_rank, quality_rank, momentum_rank
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -101,7 +104,7 @@ def clean_numeric(series):
     s = series.astype(str).str.strip()
     s = s.str.replace('%', '', regex=False)
     s = s.str.replace(',', '.', regex=False)
-    s = s.str.replace('\xa0', '', regex=False)   # non-breaking space
+    s = s.str.replace('\xa0', '', regex=False)
     s = s.str.replace(' ', '', regex=False)
     return pd.to_numeric(s, errors='coerce')
 
@@ -119,23 +122,19 @@ def pct_rank(series):
 
 
 def winsorize(series, low=0.02, high=0.98):
-    """Clip at 2nd/98th percentile to limit outlier distortion."""
     lo, hi = series.quantile(low), series.quantile(high)
     return series.clip(lo, hi)
 
 
 def safe_invert(series):
-    """1/x — negatives and zeros → NaN (uninvestable valuation multiples)."""
+    """1/x — negatives and zeros become NaN."""
     s = series.astype(float).copy()
     s[s <= 0] = float('nan')
     return 1.0 / s
 
 
 def weighted_score(df, weight_dict):
-    """
-    Weighted average of percentile-ranked columns.
-    Missing or all-NaN columns are skipped; remaining weights are rescaled.
-    """
+    """Weighted average of percentile-ranked columns. Missing cols skipped."""
     total_w     = pd.Series(0.0, index=df.index)
     total_score = pd.Series(0.0, index=df.index)
     for col, w in weight_dict.items():
@@ -153,25 +152,25 @@ def weighted_score(df, weight_dict):
 # ---------------------------------------------------------------------------
 
 def build_scores(csv_path):
-    # 1. Load — everything as text; we clean numerics ourselves
+    # 1. Load
     df = pd.read_csv(csv_path, sep=';', encoding='utf-8-sig', dtype=str)
     print(f"  Loaded {len(df):,} rows, {len(df.columns)} columns")
 
-    # 2. Rename columns to internal names
+    # 2. Rename columns
     reverse_map = {v: k for k, v in COLUMN_MAP.items()}
     df = df.rename(columns=reverse_map)
 
     if 'ticker' not in df.columns:
         raise ValueError(
-            "Column 'Info - Ticker' not found in CSV.\n"
-            "Open process.py and update COLUMN_MAP to match your CSV headers."
+            "Column 'Info - Ticker' not found. "
+            "Update COLUMN_MAP to match your CSV headers."
         )
 
     df['ticker'] = df['ticker'].astype(str).str.strip()
     df = df[df['ticker'].notna() & (df['ticker'] != '') & (df['ticker'] != 'nan')].copy()
-    print(f"  Stocks after filtering: {len(df):,}")
+    print(f"  After ticker filter: {len(df):,} rows")
 
-    # 3. Parse numerics (handles "19,9%" → 19.9, "2,0" → 2.0)
+    # 3. Parse numerics
     numeric_cols = [
         'market_cap',
         'pe', 'pb', 'ev_ebit', 'ev_sales', 'p_fcf',
@@ -183,25 +182,24 @@ def build_scores(csv_path):
         if col in df.columns:
             df[col] = clean_numeric(df[col])
 
-    # 4. Winsorize continuous factors
+    # 4. Winsorize
     for col in numeric_cols:
         if col in df.columns and df[col].notna().sum() > 20:
             df[col] = winsorize(df[col])
 
-    # 5. Invert metrics where lower raw value = better rank
-    inversions = [
+    # 5. Invert bad-is-high metrics
+    for src, dst in [
         ('pe',       'inv_pe'),
         ('pb',       'inv_pb'),
         ('ev_ebit',  'inv_ev_ebit'),
         ('ev_sales', 'inv_ev_sales'),
         ('p_fcf',    'inv_p_fcf'),
         ('nd_ebitda','inv_nd_ebitda'),
-    ]
-    for src, dst in inversions:
+    ]:
         if src in df.columns:
             df[dst] = safe_invert(df[src])
 
-    # 6. Pillar scores → percentile ranks
+    # 6. Pillar scores
     df['value_score']    = weighted_score(df, VALUE_WEIGHTS)
     df['quality_score']  = weighted_score(df, QUALITY_WEIGHTS)
     df['momentum_score'] = weighted_score(df, MOMENTUM_WEIGHTS)
@@ -210,7 +208,7 @@ def build_scores(csv_path):
     df['quality_rank']  = pct_rank(df['quality_score']).round(1)
     df['momentum_rank'] = pct_rank(df['momentum_score']).round(1)
 
-    # 7. QVM composite rank
+    # 7. QVM composite
     qvm_raw = (
         df['value_rank'].fillna(50)    * QVM_WEIGHTS['value']    +
         df['quality_rank'].fillna(50)  * QVM_WEIGHTS['quality']  +
@@ -218,7 +216,30 @@ def build_scores(csv_path):
     )
     df['qvm_rank'] = pct_rank(qvm_raw).round(1)
 
-    # 8. Serialise to list of dicts
+    # 8. ── FILTER OUT STOCKS WITH INSUFFICIENT DATA ──────────────────────
+    # A stock must have at least MIN_RAW_FIELDS raw data points
+    # AND at least MIN_PILLAR_SCORES computed pillar scores.
+    # This removes: index ETFs, warrants, shells, newly-listed stubs.
+    raw_check_cols = [
+        'pe', 'pb', 'ev_ebit', 'p_fcf',
+        'roe', 'roic', 'gross_margin', 'op_margin', 'net_margin',
+        'ret_12m', 'ret_6m', 'ret_3m',
+    ]
+    raw_check_cols = [c for c in raw_check_cols if c in df.columns]
+
+    df['_raw_filled']    = df[raw_check_cols].notna().sum(axis=1)
+    df['_pillar_filled'] = df[['value_rank','quality_rank','momentum_rank']].notna().sum(axis=1)
+
+    before = len(df)
+    df = df[
+        (df['_raw_filled']    >= MIN_RAW_FIELDS) &
+        (df['_pillar_filled'] >= MIN_PILLAR_SCORES)
+    ].copy()
+    removed = before - len(df)
+    print(f"  Removed {removed} stocks with insufficient data (ETFs/shells/stubs)")
+    print(f"  Remaining: {len(df):,} scoreable stocks")
+
+    # 9. Serialise
     def fmt(v):
         if v is None:
             return None
@@ -236,7 +257,6 @@ def build_scores(csv_path):
             'name':          fmt(row.get('name'))    or '',
             'sector':        fmt(row.get('sector'))  or '',
             'market_cap':    fmt(row.get('market_cap')),
-            # display columns shown in the table
             'pe':            fmt(row.get('pe')),
             'pb':            fmt(row.get('pb')),
             'ev_ebit':       fmt(row.get('ev_ebit')),
@@ -246,7 +266,6 @@ def build_scores(csv_path):
             'ret_12m':       fmt(row.get('ret_12m')),
             'ret_6m':        fmt(row.get('ret_6m')),
             'ret_3m':        fmt(row.get('ret_3m')),
-            # scores
             'value_rank':    fmt(row.get('value_rank')),
             'quality_rank':  fmt(row.get('quality_rank')),
             'momentum_rank': fmt(row.get('momentum_rank')),
@@ -282,7 +301,7 @@ def main():
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
     print(f"  Written {len(stocks):,} stocks → {args.output}")
-    print(f"  Top 5 by QVM rank:")
+    print(f"  Top 5 by StockRank:")
     for s in stocks[:5]:
         print(f"    {s['ticker']:12} QVM={s['qvm_rank']}  V={s['value_rank']}  Q={s['quality_rank']}  M={s['momentum_rank']}")
     print(f"  Bottom 3:")
