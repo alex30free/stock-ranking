@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Ranking — Börsdata QVM</title>
+<style>
+  /* ── Fonts ── */
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700&display=swap');
+
+  /* ── Reset & base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:        #0b0f14;
+    --surface:   #111820;
+    --card:      #161e28;
+    --border:    rgba(255,255,255,0.08);
+    --border2:   rgba(255,255,255,0.14);
+    --text:      #e2e8f0;
+    --muted:     #6b7c93;
+    --accent:    #38bdf8;
+    --accent2:   #7dd3fc;
+
+    --value-fg:  #86efac;   --value-bg:   rgba(134,239,172,0.10);
+    --qual-fg:   #93c5fd;   --qual-bg:    rgba(147,197,253,0.10);
+    --mom-fg:    #fbbf24;   --mom-bg:     rgba(251,191,36,0.10);
+    --qvm-fg:    #e879f9;   --qvm-bg:     rgba(232,121,249,0.12);
+
+    --gold:   #f59e0b;
+    --top10:  rgba(248,190,43,0.06);
+    --top10b: rgba(248,190,43,0.25);
+
+    --radius: 10px;
+    --col-w: 74px;
+  }
+  html { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; font-size: 14px; }
+  body { min-height: 100vh; }
+
+  /* ── Layout ── */
+  .page { max-width: 1440px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  /* ── Header ── */
+  header { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 32px; }
+  .logo  { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
+  .logo span { color: var(--accent); }
+  .meta  { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+  /* ── Summary cards ── */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 12px; margin-bottom: 28px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .card-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px; }
+  .card-value { font-size: 26px; font-weight: 700; font-family: 'DM Mono', monospace; }
+  .card-value.v { color: var(--value-fg); }
+  .card-value.q { color: var(--qual-fg); }
+  .card-value.m { color: var(--mom-fg); }
+  .card-value.qvm { color: var(--qvm-fg); }
+
+  /* ── Filter bar ── */
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
+  .search-wrap { position: relative; flex: 1; min-width: 180px; }
+  .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.4; }
+  .search-input {
+    width: 100%; background: var(--card); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 8px 12px 8px 34px;
+    color: var(--text); font-family: 'Sora', sans-serif; font-size: 13px; outline: none;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .sector-select {
+    background: var(--card); border: 1px solid var(--border2); border-radius: 8px;
+    padding: 8px 12px; color: var(--text); font-family: 'Sora', sans-serif;
+    font-size: 13px; outline: none; cursor: pointer;
+  }
+  .top10-toggle {
+    display: flex; align-items: center; gap: 7px; font-size: 13px;
+    color: var(--muted); cursor: pointer; user-select: none;
+    padding: 8px 14px; border: 1px solid var(--border2); border-radius: 8px;
+    background: var(--card); transition: border-color .2s;
+  }
+  .top10-toggle:hover { border-color: var(--gold); color: var(--gold); }
+  .top10-toggle input { accent-color: var(--gold); cursor: pointer; }
+  .count-badge {
+    margin-left: auto; font-size: 12px; color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── Table wrapper ── */
+  .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; min-width: 900px; }
+  thead th {
+    background: var(--surface); padding: 11px 14px; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted);
+    font-weight: 600; white-space: nowrap; cursor: pointer;
+    border-bottom: 1px solid var(--border2); user-select: none;
+    position: sticky; top: 0; z-index: 2;
+  }
+  thead th:hover { color: var(--text); }
+  thead th.active { color: var(--accent); }
+  .sort-icon { display: inline-block; margin-left: 4px; opacity: 0.4; font-size: 10px; }
+  thead th.active .sort-icon { opacity: 1; }
+
+  /* ── Rows ── */
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .12s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.03); }
+  tbody tr.top10 { background: var(--top10); }
+  tbody tr.top10:hover { background: rgba(248,190,43,0.10); }
+  tbody tr.top10 td:first-child { border-left: 3px solid var(--gold); }
+
+  td { padding: 10px 14px; font-size: 13px; vertical-align: middle; }
+  td.rank-num { font-family: 'DM Mono', monospace; color: var(--muted); font-size: 12px; width: 36px; text-align: center; }
+  td.ticker { font-family: 'DM Mono', monospace; font-weight: 500; color: var(--accent2); font-size: 13px; }
+  td.name   { font-weight: 400; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  td.sector { color: var(--muted); font-size: 12px; max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  td.num    { font-family: 'DM Mono', monospace; text-align: right; color: var(--muted); font-size: 12px; }
+  td.pos    { color: #86efac; }
+  td.neg    { color: #f87171; }
+
+  /* ── Score pills ── */
+  .pill {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 48px; padding: 3px 8px; border-radius: 20px;
+    font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500;
+  }
+  .pill.v   { background: var(--value-bg); color: var(--value-fg); }
+  .pill.q   { background: var(--qual-bg);  color: var(--qual-fg);  }
+  .pill.m   { background: var(--mom-bg);   color: var(--mom-fg);   }
+  .pill.qvm { background: var(--qvm-bg);   color: var(--qvm-fg); font-size: 13px; min-width: 56px; }
+
+  /* ── Mini score bar inside pill (only for QVM) ── */
+  .qvm-wrap { display: flex; align-items: center; gap: 8px; }
+  .qvm-bar  { flex: 1; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; min-width: 36px; max-width: 64px; overflow: hidden; }
+  .qvm-fill { height: 100%; background: var(--qvm-fg); border-radius: 2px; transition: width .3s; }
+
+  /* ── Gold crown for top1 ── */
+  .crown { font-size: 12px; margin-right: 4px; }
+
+  /* ── Tooltip ── */
+  [data-tip] { position: relative; cursor: default; }
+  [data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: #1e2a38; border: 1px solid var(--border2); border-radius: 6px;
+    padding: 5px 9px; font-size: 11px; white-space: nowrap; color: var(--text);
+    pointer-events: none; z-index: 10;
+  }
+
+  /* ── Footer ── */
+  footer { margin-top: 40px; text-align: center; font-size: 11px; color: var(--muted); line-height: 1.8; }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* ── Loading / error ── */
+  #status { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">QVM<span>Rank</span></div>
+    <div class="meta" id="last-updated">Loading…</div>
+  </header>
+
+  <!-- Summary cards -->
+  <div class="cards" id="summary-cards">
+    <div class="card"><div class="card-label">Stocks ranked</div><div class="card-value v" id="c-count">—</div></div>
+    <div class="card"><div class="card-label">Avg Value rank</div><div class="card-value v" id="c-val">—</div></div>
+    <div class="card"><div class="card-label">Avg Quality rank</div><div class="card-value q" id="c-qual">—</div></div>
+    <div class="card"><div class="card-label">Avg Momentum rank</div><div class="card-value m" id="c-mom">—</div></div>
+    <div class="card"><div class="card-label">Avg QVM rank</div><div class="card-value qvm" id="c-qvm">—</div></div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input class="search-input" id="search" type="text" placeholder="Search ticker or company…" autocomplete="off">
+    </div>
+    <select class="sector-select" id="sector-filter">
+      <option value="">All sectors</option>
+    </select>
+    <label class="top10-toggle">
+      <input type="checkbox" id="top10-only"> Show top 10 only
+    </label>
+    <span class="count-badge" id="row-count"></span>
+  </div>
+
+  <!-- Table -->
+  <div id="status">Loading scores…</div>
+  <div class="table-wrap" id="table-wrap" style="display:none">
+    <table id="rank-table">
+      <thead>
+        <tr>
+          <th data-col=""     style="width:36px">#</th>
+          <th data-col="ticker">Ticker <span class="sort-icon">↕</span></th>
+          <th data-col="name">Company <span class="sort-icon">↕</span></th>
+          <th data-col="sector">Sector <span class="sort-icon">↕</span></th>
+          <th data-col="pe"   class="num" data-tip="Price/Earnings (TTM)">P/E <span class="sort-icon">↕</span></th>
+          <th data-col="pb"   class="num" data-tip="Price/Book">P/B <span class="sort-icon">↕</span></th>
+          <th data-col="roe"  class="num" data-tip="Return on Equity %">ROE% <span class="sort-icon">↕</span></th>
+          <th data-col="op_margin" class="num" data-tip="Operating Margin %">OpM% <span class="sort-icon">↕</span></th>
+          <th data-col="ret_12m"   class="num" data-tip="12-month price return %">12M% <span class="sort-icon">↕</span></th>
+          <th data-col="value_rank"    class="num active" data-tip="Value percentile (0–100, higher=cheaper)">Value <span class="sort-icon">↓</span></th>
+          <th data-col="quality_rank"  class="num" data-tip="Quality percentile (0–100)">Quality <span class="sort-icon">↕</span></th>
+          <th data-col="momentum_rank" class="num" data-tip="Momentum percentile (0–100)">Momentum <span class="sort-icon">↕</span></th>
+          <th data-col="qvm_rank"      class="num" data-tip="Composite QVM rank (0–100)">QVM Rank <span class="sort-icon">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    Data source: <a href="https://borsdata.se" target="_blank">Börsdata</a> &nbsp;·&nbsp;
+    Scores computed by process.py &nbsp;·&nbsp;
+    Methodology mirrors <a href="https://www.stockopedia.com/features/stockranks-methodology/" target="_blank">Stockopedia StockRanks</a><br>
+    Not financial advice. Past performance does not guarantee future results.
+  </footer>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// Config
+// ─────────────────────────────────────────────────────────────────────────────
+// Change DATA_URL if you rename the file or host elsewhere.
+// When running on GitHub Pages, this relative path works out of the box.
+const DATA_URL = "data/scores.json";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────────────────────────────────────
+let allStocks = [];
+let sortCol   = "qvm_rank";
+let sortDir   = -1;              // -1 = descending, 1 = ascending
+let filterText   = "";
+let filterSector = "";
+let top10Only    = false;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+const fmt = (v, dec=1) => (v == null || isNaN(v)) ? "—" : Number(v).toFixed(dec);
+const avg = arr => arr.reduce((a,b) => a + (b||0), 0) / arr.filter(x => x != null).length;
+
+function pillClass(score, type) {
+  // brighten pill at extremes
+  return type;
+}
+
+function scoreColor(score) {
+  if (score == null) return "";
+  if (score >= 80) return "color:#86efac";
+  if (score >= 60) return "color:#bef264";
+  if (score <= 30) return "color:#f87171";
+  if (score <= 20) return "color:#fca5a5";
+  return "";
+}
+
+function retColor(v) {
+  if (v == null) return "";
+  return v >= 0 ? "pos" : "neg";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Render
+// ─────────────────────────────────────────────────────────────────────────────
+function getFiltered() {
+  let s = allStocks.slice();
+
+  if (filterSector) s = s.filter(r => r.sector === filterSector);
+  if (filterText) {
+    const q = filterText.toLowerCase();
+    s = s.filter(r =>
+      (r.ticker||"").toLowerCase().includes(q) ||
+      (r.name||"").toLowerCase().includes(q)
+    );
+  }
+  // sort
+  s.sort((a, b) => {
+    const av = a[sortCol] ?? (sortDir === -1 ? -Infinity : Infinity);
+    const bv = b[sortCol] ?? (sortDir === -1 ? -Infinity : Infinity);
+    if (typeof av === "string") return sortDir * av.localeCompare(bv);
+    return sortDir * (bv - av);
+  });
+
+  if (top10Only) s = s.slice(0, 10);
+  return s;
+}
+
+function render() {
+  const stocks = getFiltered();
+  // determine top10 tickers from full sorted (ignoring top10Only filter)
+  const fullSorted = allStocks.slice().sort((a,b) => ((b.qvm_rank||0) - (a.qvm_rank||0)));
+  const top10Set = new Set(fullSorted.slice(0,10).map(s => s.ticker));
+
+  const rows = stocks.map((s, i) => {
+    const isTop = top10Set.has(s.ticker);
+    const crown = i === 0 && !filterText && !filterSector && !top10Only
+      ? `<span class="crown">👑</span>` : "";
+
+    const qvmBar = s.qvm_rank != null
+      ? `<div class="qvm-bar"><div class="qvm-fill" style="width:${s.qvm_rank}%"></div></div>`
+      : "";
+
+    return `<tr class="${isTop ? "top10" : ""}">
+      <td class="rank-num">${i+1}</td>
+      <td class="ticker">${s.ticker}</td>
+      <td class="name" title="${s.name}">${crown}${s.name||"—"}</td>
+      <td class="sector" title="${s.sector||""}">${s.sector||"—"}</td>
+      <td class="num">${fmt(s.pe, 1)}</td>
+      <td class="num">${fmt(s.pb, 2)}</td>
+      <td class="num ${s.roe >= 15 ? "pos" : s.roe < 0 ? "neg" : ""}">${fmt(s.roe, 1)}</td>
+      <td class="num ${s.op_margin >= 10 ? "pos" : s.op_margin < 0 ? "neg" : ""}">${fmt(s.op_margin, 1)}</td>
+      <td class="num ${retColor(s.ret_12m)}">${s.ret_12m != null ? (s.ret_12m >= 0 ? "+" : "") + fmt(s.ret_12m, 1) + "%" : "—"}</td>
+      <td class="num"><span class="pill v" style="${scoreColor(s.value_rank)}">${fmt(s.value_rank, 0)}</span></td>
+      <td class="num"><span class="pill q" style="${scoreColor(s.quality_rank)}">${fmt(s.quality_rank, 0)}</span></td>
+      <td class="num"><span class="pill m" style="${scoreColor(s.momentum_rank)}">${fmt(s.momentum_rank, 0)}</span></td>
+      <td class="num">
+        <div class="qvm-wrap">
+          <span class="pill qvm" style="${scoreColor(s.qvm_rank)}">${fmt(s.qvm_rank, 0)}</span>
+          ${qvmBar}
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+
+  document.getElementById("tbody").innerHTML = rows || `<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--muted)">No results</td></tr>`;
+  document.getElementById("row-count").textContent = `${stocks.length} stocks`;
+}
+
+function updateSummaryCards(stocks) {
+  document.getElementById("c-count").textContent = stocks.length;
+  const vals = stocks.map(s => s.value_rank).filter(v => v != null);
+  const quals = stocks.map(s => s.quality_rank).filter(v => v != null);
+  const moms = stocks.map(s => s.momentum_rank).filter(v => v != null);
+  const qvms = stocks.map(s => s.qvm_rank).filter(v => v != null);
+  document.getElementById("c-val").textContent  = vals.length  ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length)  : "—";
+  document.getElementById("c-qual").textContent = quals.length ? Math.round(quals.reduce((a,b)=>a+b,0)/quals.length) : "—";
+  document.getElementById("c-mom").textContent  = moms.length  ? Math.round(moms.reduce((a,b)=>a+b,0)/moms.length)  : "—";
+  document.getElementById("c-qvm").textContent  = qvms.length  ? Math.round(qvms.reduce((a,b)=>a+b,0)/qvms.length)  : "—";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sort headers
+// ─────────────────────────────────────────────────────────────────────────────
+document.querySelectorAll("thead th[data-col]").forEach(th => {
+  th.addEventListener("click", () => {
+    const col = th.dataset.col;
+    if (!col) return;
+    if (sortCol === col) {
+      sortDir *= -1;
+    } else {
+      sortCol = col;
+      sortDir = -1;
+    }
+    document.querySelectorAll("thead th").forEach(h => {
+      h.classList.remove("active");
+      const icon = h.querySelector(".sort-icon");
+      if (icon) icon.textContent = "↕";
+    });
+    th.classList.add("active");
+    const icon = th.querySelector(".sort-icon");
+    if (icon) icon.textContent = sortDir === -1 ? "↓" : "↑";
+    render();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Filters
+// ─────────────────────────────────────────────────────────────────────────────
+document.getElementById("search").addEventListener("input", e => {
+  filterText = e.target.value.trim();
+  render();
+});
+document.getElementById("sector-filter").addEventListener("change", e => {
+  filterSector = e.target.value;
+  render();
+});
+document.getElementById("top10-only").addEventListener("change", e => {
+  top10Only = e.target.checked;
+  render();
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Load data
+// ─────────────────────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const res = await fetch(DATA_URL + "?_=" + Date.now());
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    allStocks = data.stocks || [];
+    document.getElementById("last-updated").textContent =
+      "Updated: " + (data.updated || "unknown");
+
+    // Populate sector filter
+    const sectors = [...new Set(allStocks.map(s => s.sector).filter(Boolean))].sort();
+    const sel = document.getElementById("sector-filter");
+    sectors.forEach(sec => {
+      const opt = document.createElement("option");
+      opt.value = opt.textContent = sec;
+      sel.appendChild(opt);
+    });
+
+    updateSummaryCards(allStocks);
+
+    document.getElementById("status").style.display = "none";
+    document.getElementById("table-wrap").style.display = "";
+
+    // Default sort: QVM rank descending
+    sortCol = "qvm_rank";
+    sortDir = -1;
+    render();
+
+  } catch (err) {
+    document.getElementById("status").innerHTML =
+      `<div style="color:#f87171">⚠ Could not load <code>${DATA_URL}</code><br><small>${err.message}</small></div>
+       <p style="margin-top:16px;font-size:12px;color:var(--muted)">
+         Make sure <b>process.py</b> has been run and <b>data/scores.json</b> exists in the repo,<br>
+         and that GitHub Pages is serving from the correct branch/folder.
+       </p>`;
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
