@@ -145,9 +145,9 @@ mark{background:rgba(56,189,248,0.2);color:var(--accent);border-radius:2px;font-
 .sbtn{position:relative}
 .sbtn .tip{
   display:none;position:absolute;bottom:calc(100% + 8px);left:50%;
-  transform:translateX(-50%);z-index:100;
+  transform:translateX(-50%);z-index:9999;
   background:#1a2535;border:1px solid var(--border2);border-radius:8px;
-  padding:10px 13px;width:220px;pointer-events:none;
+  padding:10px 13px;width:300px;max-width:90vw;pointer-events:none;
   box-shadow:0 4px 20px rgba(0,0,0,0.5)
 }
 .sbtn:hover .tip{display:block}
@@ -156,7 +156,7 @@ mark{background:rgba(56,189,248,0.2);color:var(--accent);border-radius:2px;font-
 .sbtn .tip-qvm span{padding:2px 6px;border-radius:10px;font-weight:600;font-size:10px}
 .tip-hi{background:rgba(27,94,32,0.5);color:#a5d6a7}
 .tip-lo{background:rgba(183,28,28,0.4);color:#ef9a9a}
-.sbtn .tip-desc{font-size:11px;color:var(--muted);line-height:1.55}
+.sbtn .tip-desc{font-size:11px;color:var(--muted);line-height:1.55;white-space:normal;word-wrap:break-word}
 
 footer{margin-top:40px;text-align:center;font-size:11px;color:var(--muted);line-height:2}
 footer a{color:var(--accent);text-decoration:none}
