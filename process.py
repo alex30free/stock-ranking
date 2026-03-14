@@ -30,7 +30,8 @@ COLUMN_MAP = {
     "country":       "Info - Land",
     "market_cap":    "Börsvärde - Senaste SEK",
     "pe":            "P/E - Senaste",
-    "pb":            "P/B - Senaste",
+    "peg":           "PEG - Senaste",
+    "beta":          "Beta - Senaste",
     "ev_ebit":       "EV/EBIT - Senaste",
     "ev_sales":      "EV/S - Senaste",
     "p_fcf":         "P/FCF - Senaste",
@@ -51,10 +52,9 @@ COLUMN_MAP = {
 # Factor weights
 # ---------------------------------------------------------------------------
 VALUE_WEIGHTS = {
-    "inv_pe":       0.20,
-    "inv_pb":       0.15,
-    "inv_ev_ebit":  0.30,
-    "inv_p_fcf":    0.25,
+    "inv_pe":       0.25,
+    "inv_ev_ebit":  0.35,
+    "inv_p_fcf":    0.30,
     "inv_ev_sales": 0.10,
 }
 QUALITY_WEIGHTS = {
@@ -182,7 +182,7 @@ def build_scores(csv_path):
 
     # Parse numerics
     numeric_cols = [
-        'market_cap', 'pe', 'pb', 'ev_ebit', 'ev_sales', 'p_fcf',
+        'market_cap', 'pe', 'peg', 'beta', 'ev_ebit', 'ev_sales', 'p_fcf',
         'roe', 'roic', 'gross_margin', 'op_margin', 'net_margin',
         'current_ratio', 'nd_ebitda', 'rev_growth_3y',
         'ret_3m', 'ret_6m', 'ret_12m',
@@ -199,7 +199,6 @@ def build_scores(csv_path):
     # Invert bad-is-high metrics
     for src, dst in [
         ('pe',       'inv_pe'),
-        ('pb',       'inv_pb'),
         ('ev_ebit',  'inv_ev_ebit'),
         ('ev_sales', 'inv_ev_sales'),
         ('p_fcf',    'inv_p_fcf'),
@@ -208,6 +207,10 @@ def build_scores(csv_path):
         if src in df.columns:
             df[dst] = safe_invert(df[src])
 
+    # Calculate PEGR = PEG * Beta (risk-adjusted PEG)
+    if 'peg' in df.columns and 'beta' in df.columns:
+        df['pegr'] = df['peg'] * df['beta'].abs()
+
     # Raw composite scores (internal use only)
     df['_val_raw']  = weighted_raw_score(df, VALUE_WEIGHTS)
     df['_qual_raw'] = weighted_raw_score(df, QUALITY_WEIGHTS)
@@ -215,7 +218,7 @@ def build_scores(csv_path):
 
     # ── Filter: remove ETFs, shells, stubs ─────────────────────────────────
     raw_check = [c for c in [
-        'pe','pb','ev_ebit','p_fcf','roe','roic',
+        'pe','peg','ev_ebit','p_fcf','roe','roic',
         'gross_margin','op_margin','net_margin',
         'ret_12m','ret_6m','ret_3m',
     ] if c in df.columns]
@@ -278,7 +281,8 @@ def build_scores(csv_path):
             'country':       str(row.get('country') or ''),
             'market_cap':    fmt(row.get('market_cap')),
             'pe':            fmt(row.get('pe')),
-            'pb':            fmt(row.get('pb')),
+            'peg':           fmt(row.get('peg')),
+            'pegr':          fmt(row.get('pegr')),
             'ev_ebit':       fmt(row.get('ev_ebit')),
             'p_fcf':         fmt(row.get('p_fcf')),
             'roe':           fmt(row.get('roe')),

@@ -362,7 +362,8 @@ footer a{color:var(--accent);text-decoration:none}
   <th data-col="style">Style <span class="arr">↕</span></th>
   <th data-col="market_cap" class="r">MCap MSEK <span class="arr">↕</span></th>
   <th data-col="pe" class="r">P/E <span class="arr">↕</span></th>
-  <th data-col="pb" class="r">P/B <span class="arr">↕</span></th>
+  <th data-col="peg" class="r">PEG <span class="arr">↕</span></th>
+  <th data-col="pegr" class="r">PEGR <span class="arr">↕</span></th>
   <th data-col="roe" class="r">ROE% <span class="arr">↕</span></th>
   <th data-col="ret_12m" class="r">12M% <span class="arr">↕</span></th>
   <th data-col="value_rank"    class="c">Value <span class="arr">↕</span></th>
@@ -504,6 +505,16 @@ function getVisible(){
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 function f1(v){return(v===null||v===undefined||isNaN(v))?'—':Number(v).toFixed(1);}
+function pegCell(v){
+  if(v===null||v===undefined||isNaN(v)) return '—';
+  var n=Number(v), txt=n.toFixed(2);
+  return n<1 ? '<span style="color:#ffd54f;font-weight:600">'+txt+'</span>' : txt;
+}
+function pegrCell(v){
+  if(v===null||v===undefined||isNaN(v)) return '—';
+  var n=Number(v), txt=n.toFixed(2);
+  return n<1 ? '<span style="background:rgba(255,213,79,0.15);color:#ffd54f;font-weight:600;padding:1px 5px;border-radius:4px">'+txt+'</span>' : txt;
+}
 function fmcap(v){
   if(v===null||v===undefined||isNaN(v)) return '—';
   if(v>=1000000) return (v/1000000).toFixed(1)+'T';
@@ -678,7 +689,8 @@ function render(){
       +'<td>'+styleBadge(s.style)+'</td>'
       +'<td class="r">'+fmcap(s.market_cap)+'</td>'
       +'<td class="r">'+f1(s.pe)+'</td>'
-      +'<td class="r">'+f1(s.pb)+'</td>'
+      +'<td class="r">'+pegCell(s.peg)+'</td>'
+      +'<td class="r">'+pegrCell(s.pegr)+'</td>'
       +'<td class="'+roeCls+'">'+f1(s.roe)+'</td>'
       +'<td class="'+rCls+'">'+ret12+'</td>'
       +'<td class="c">'+circle(s.value_rank)+'</td>'
