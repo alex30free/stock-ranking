@@ -10,7 +10,7 @@
   --bg:#0b0f14;--surface:#111820;--card:#161e28;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
   --text:#e2e8f0;--muted:#5a6a7e;--accent:#38bdf8;--gold:#f59e0b;
-  --top10bg:rgba(245,158,11,0.05);--top10bl:rgba(245,158,11,0.6);
+  --top10bg:rgba(245,158,11,0.09);--top10bl:rgba(245,158,11,0.9);
 }
 html{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px}
 body{min-height:100vh}
@@ -109,7 +109,7 @@ input[type=range].mcap-slider::-moz-range-thumb{
 
 /* ── Table ── */
 .tw{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
-table{width:100%;border-collapse:collapse;min-width:1000px}
+table{width:100%;border-collapse:collapse;min-width:1200px}
 thead th{background:var(--surface);padding:9px 11px;font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600;white-space:nowrap;cursor:pointer;border-bottom:1px solid var(--border2);user-select:none;position:sticky;top:0;z-index:2;text-align:left}
 thead th.r{text-align:right} thead th.c{text-align:center}
 thead th:hover{color:var(--text)} thead th.active{color:#81c784}
@@ -119,7 +119,7 @@ tbody tr{border-bottom:1px solid var(--border);transition:background .08s}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:rgba(255,255,255,0.026)}
 tbody tr.top10{background:var(--top10bg)}
-tbody tr.top10 td:first-child{border-left:2px solid var(--top10bl)}
+tbody tr.top10 td:first-child{border-left:4px solid var(--top10bl)}
 td{padding:8px 11px;font-size:12px;vertical-align:middle}
 td.rn{font-family:monospace;color:var(--muted);font-size:11px;text-align:center;width:36px}
 td.tk{font-family:monospace;font-weight:700;color:var(--accent);font-size:13px;white-space:nowrap}
@@ -127,7 +127,7 @@ td.nm{max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 td.se{color:var(--muted);font-size:11px;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 td.co{text-align:center;width:28px;font-size:13px}
 td.r{text-align:right;font-family:monospace;color:var(--muted);font-size:12px}
-td.pos{color:#81c784} td.neg{color:#ef9a9a} td.c{text-align:center}
+td.pos{color:#66bb6a;font-weight:600} td.neg{color:#ef5350;font-weight:600} td.c{text-align:center}
 mark{background:rgba(56,189,248,0.2);color:var(--accent);border-radius:2px;font-style:normal}
 
 .circle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;font-size:12px;font-weight:700;color:#fff;font-family:monospace;letter-spacing:-0.5px}
@@ -136,7 +136,7 @@ mark{background:rgba(56,189,248,0.2);color:var(--accent);border-radius:2px;font-
 
 .style-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap}
 .st-ss{background:rgba(27,94,32,0.35);color:#a5d6a7}.st-hf{background:rgba(13,71,161,0.35);color:#90caf9}
-.st-co{background:rgba(74,20,140,0.35);color:#ce93d8}.st-ta{background:rgba(230,81,0,0.35);color:#ffcc80}
+.st-co{background:rgba(180,120,0,0.30);color:#ffd54f}.st-ta{background:rgba(230,81,0,0.35);color:#ffcc80}
 .st-su{background:rgba(183,28,28,0.35);color:#ef9a9a}.st-mt{background:rgba(136,14,79,0.35);color:#f48fb1}
 .st-fs{background:rgba(55,71,79,0.35);color:#b0bec5}.st-vt{background:rgba(245,127,23,0.35);color:#ffe082}
 .st-uc{background:rgba(80,80,80,0.25);color:#888}
@@ -362,14 +362,16 @@ footer a{color:var(--accent);text-decoration:none}
   <th data-col="style">Style <span class="arr">↕</span></th>
   <th data-col="market_cap" class="r">MCap MSEK <span class="arr">↕</span></th>
   <th data-col="pe" class="r">P/E <span class="arr">↕</span></th>
+  <th data-col="ev_ebit" class="r">EV/EBIT <span class="arr">↕</span></th>
   <th data-col="peg" class="r">PEG <span class="arr">↕</span></th>
   <th data-col="pegr" class="r">PEGR <span class="arr">↕</span></th>
+  <th data-col="roic" class="r">ROIC% <span class="arr">↕</span></th>
   <th data-col="roe" class="r">ROE% <span class="arr">↕</span></th>
   <th data-col="ret_12m" class="r">12M% <span class="arr">↕</span></th>
   <th data-col="value_rank"    class="c">Value <span class="arr">↕</span></th>
   <th data-col="quality_rank"  class="c">Quality <span class="arr">↕</span></th>
   <th data-col="momentum_rank" class="c">Momentum <span class="arr">↕</span></th>
-  <th data-col="qvm_rank"      class="c active">StockRank™ <span class="arr">↓</span></th>
+  <th data-col="qvm_rank"      class="c active" style="min-width:100px">StockRank™ <span class="arr">↓</span></th>
   <th data-col="qvm_pos"       class="r">Rank# <span class="arr">↕</span></th>
 </tr></thead>
 <tbody id="tbody"></tbody>
@@ -680,6 +682,7 @@ function render(){
     var ret12=(s.ret_12m!==null&&s.ret_12m!==undefined)?((s.ret_12m>=0?'+':'')+f1(s.ret_12m)+'%'):'—';
     var rCls  =s.ret_12m==null?'r':s.ret_12m>=0?'r pos':'r neg';
     var roeCls=s.roe==null?'r':s.roe>=0?'r pos':'r neg';
+    var roicCls=s.roic==null?'r':s.roic>=0?'r pos':'r neg';
     html+='<tr class="'+(isTop?'top10':'')+'">'
       +'<td class="rn">'+(i+1)+'</td>'
       +'<td class="tk">'+highlight(s.ticker,q)+'</td>'
@@ -689,8 +692,10 @@ function render(){
       +'<td>'+styleBadge(s.style)+'</td>'
       +'<td class="r">'+fmcap(s.market_cap)+'</td>'
       +'<td class="r">'+f1(s.pe)+'</td>'
+      +'<td class="r">'+f1(s.ev_ebit)+'</td>'
       +'<td class="r">'+pegCell(s.peg)+'</td>'
       +'<td class="r">'+pegrCell(s.pegr)+'</td>'
+      +'<td class="'+roicCls+'">'+f1(s.roic)+'</td>'
       +'<td class="'+roeCls+'">'+f1(s.roe)+'</td>'
       +'<td class="'+rCls+'">'+ret12+'</td>'
       +'<td class="c">'+circle(s.value_rank)+'</td>'
@@ -701,7 +706,7 @@ function render(){
       +'</tr>';
   }
   document.getElementById('tbody').innerHTML=html||
-    '<tr><td colspan="16" style="text-align:center;padding:40px;color:var(--muted)">No stocks match the current filters</td></tr>';
+    '<tr><td colspan="18" style="text-align:center;padding:40px;color:var(--muted)">No stocks match the current filters</td></tr>';
 }
 
 // ─── Country buttons ───────────────────────────────────────────────────────

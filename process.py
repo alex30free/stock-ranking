@@ -284,6 +284,7 @@ def build_scores(csv_path):
             'peg':           fmt(row.get('peg')),
             'pegr':          fmt(row.get('pegr')),
             'ev_ebit':       fmt(row.get('ev_ebit')),
+            'roic':          fmt(row.get('roic')),
             'p_fcf':         fmt(row.get('p_fcf')),
             'roe':           fmt(row.get('roe')),
             'op_margin':     fmt(row.get('op_margin')),
