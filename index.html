@@ -336,11 +336,12 @@ footer a{color:var(--accent);text-decoration:none}
       </div>
       <div class="mcap-presets">
         <button class="preset-btn active" data-lo="0" data-hi="100">Any</button>
-        <button class="preset-btn" data-lo="0" data-hi="36">&lt;500M</button>
-        <button class="preset-btn" data-lo="0" data-hi="43">&lt;1B</button>
-        <button class="preset-btn" data-lo="36" data-hi="43">500M–1B</button>
-        <button class="preset-btn" data-lo="43" data-hi="57">1B–5B</button>
-        <button class="preset-btn" data-lo="57" data-hi="100">&gt;5B</button>
+        <button class="preset-btn" data-lo="0" data-hi="47">&lt;500M</button>
+        <button class="preset-btn" data-lo="0" data-hi="53">&lt;1B</button>
+        <button class="preset-btn" data-lo="40" data-hi="53">200M–1B</button>
+        <button class="preset-btn" data-lo="47" data-hi="53">500M–1B</button>
+        <button class="preset-btn" data-lo="53" data-hi="65">1B–5B</button>
+        <button class="preset-btn" data-lo="65" data-hi="100">&gt;5B</button>
       </div>
     </div>
 
@@ -418,9 +419,9 @@ function mcapToSlider(m) {
 }
 function fmtMcap(m) {
   if (m <= 0) return 'No minimum';
-  if (m >= 1000000) return (m/1000000).toFixed(1)+'T SEK';
-  if (m >= 1000)    return (m/1000).toFixed(m>=10000?0:1)+'B SEK';
-  return m.toLocaleString()+' MSEK';
+  if (m >= 1000000) return (m/1000000).toFixed(1)+'T';
+  if (m >= 1000)    return (m/1000).toFixed(m>=10000?0:1)+'B';
+  return Math.round(m)+'M';
 }
 
 // Flags
@@ -675,14 +676,22 @@ function setMcapRange(lo,hi){
   updateMcapUI(); render();
 }
 
+var mcapDebounce=null;
+function debouncedRender(){
+  clearTimeout(mcapDebounce);
+  mcapDebounce=setTimeout(function(){render();},120);
+}
 mcapMinEl.addEventListener('input',function(){
   if(parseInt(this.value)>parseInt(mcapMaxEl.value)-5) this.value=parseInt(mcapMaxEl.value)-5;
-  updateMcapUI(); render();
+  updateMcapUI(); debouncedRender();
 });
 mcapMaxEl.addEventListener('input',function(){
   if(parseInt(this.value)<parseInt(mcapMinEl.value)+5) this.value=parseInt(mcapMinEl.value)+5;
-  updateMcapUI(); render();
+  updateMcapUI(); debouncedRender();
 });
+// Also fire immediately on mouseup/touchend for snappy final result
+mcapMinEl.addEventListener('change',function(){render();});
+mcapMaxEl.addEventListener('change',function(){render();});
 
 document.querySelectorAll('.preset-btn').forEach(function(btn){
   btn.addEventListener('click',function(){
