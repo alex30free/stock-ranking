@@ -109,8 +109,8 @@ input[type=range].mcap-slider::-moz-range-thumb{
 
 /* ── Table ── */
 .tw{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
-table{width:100%;border-collapse:collapse;min-width:1200px}
-thead th{background:var(--surface);padding:9px 11px;font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600;white-space:nowrap;cursor:pointer;border-bottom:1px solid var(--border2);user-select:none;position:sticky;top:0;z-index:2;text-align:left}
+table{width:100%;border-collapse:collapse;min-width:1100px}
+thead th{background:var(--surface);padding:7px 8px;font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600;white-space:nowrap;cursor:pointer;border-bottom:1px solid var(--border2);user-select:none;position:sticky;top:0;z-index:2;text-align:left}
 thead th.r{text-align:right} thead th.c{text-align:center}
 thead th:hover{color:var(--text)} thead th.active{color:#81c784}
 .arr{display:inline-block;margin-left:3px;opacity:0.3;font-size:9px}
@@ -120,7 +120,7 @@ tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:rgba(255,255,255,0.026)}
 tbody tr.top10{background:var(--top10bg)}
 tbody tr.top10 td:first-child{border-left:4px solid var(--top10bl)}
-td{padding:6px 9px;font-size:12px;vertical-align:middle}
+td{padding:5px 7px;font-size:12px;vertical-align:middle}
 td.rn{font-family:monospace;color:var(--muted);font-size:11px;text-align:center;width:36px}
 td.tk{font-family:monospace;font-weight:700;color:var(--accent);font-size:13px;white-space:nowrap}
 td.nm{max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -137,7 +137,7 @@ mark{background:rgba(56,189,248,0.2);color:var(--accent);border-radius:2px;font-
 /* thin outer ring showing exact score as conic-gradient */
 .circle::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(var(--ring-color,#388e3c) var(--ring-pct,0%), #1e2a38 var(--ring-pct,0%));z-index:-1;opacity:0.9}
 
-.style-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap}
+.style-badge{display:inline-block;padding:2px 6px;border-radius:8px;font-size:10px;font-weight:600;white-space:nowrap}
 .st-ss{background:rgba(27,94,32,0.35);color:#a5d6a7}.st-hf{background:rgba(13,71,161,0.35);color:#90caf9}
 .st-co{background:rgba(180,120,0,0.30);color:#ffd54f}.st-ta{background:rgba(230,81,0,0.35);color:#ffcc80}
 .st-su{background:rgba(183,28,28,0.35);color:#ef9a9a}.st-mt{background:rgba(136,14,79,0.35);color:#f48fb1}
@@ -358,12 +358,13 @@ footer a{color:var(--accent);text-decoration:none}
 <table>
 <thead id="thead"><tr>
   <th data-col="">#</th>
+  <th data-col="qvm_pos" class="r" style="min-width:44px;color:var(--gold)">Rank <span class="arr">↕</span></th>
   <th data-col="ticker">Ticker <span class="arr">↕</span></th>
   <th data-col="name">Company <span class="arr">↕</span></th>
   <th data-col="sector">Sector <span class="arr">↕</span></th>
   <th data-col="country" class="c">Mkt <span class="arr">↕</span></th>
   <th data-col="style">Style <span class="arr">↕</span></th>
-  <th data-col="market_cap" class="r">MCap MSEK <span class="arr">↕</span></th>
+  <th data-col="market_cap" class="r" style="min-width:60px">MCap <span class="arr">↕</span></th>
   <th data-col="pe" class="r">P/E <span class="arr">↕</span></th>
   <th data-col="ev_ebit" class="r">EV/EBIT <span class="arr">↕</span></th>
   <th data-col="peg" class="r">PEG <span class="arr">↕</span></th>
@@ -375,7 +376,6 @@ footer a{color:var(--accent);text-decoration:none}
   <th data-col="quality_rank"  class="c">Quality <span class="arr">↕</span></th>
   <th data-col="momentum_rank" class="c">Momentum <span class="arr">↕</span></th>
   <th data-col="qvm_rank"      class="c active" style="min-width:100px">StockRank™ <span class="arr">↓</span></th>
-  <th data-col="qvm_pos"       class="r">Rank# <span class="arr">↕</span></th>
 </tr></thead>
 <tbody id="tbody"></tbody>
 </table>
@@ -730,6 +730,7 @@ function render(){
     var roicCls=s.roic==null?'r':s.roic>=0?'r pos':'r neg';
     html+='<tr class="'+(isTop?'top10':'')+'">'
       +'<td class="rn">'+(i+1)+'</td>'
+      +'<td class="r" style="font-family:monospace;font-size:12px;font-weight:700;color:var(--text)">#'+(s.qvm_pos||'—')+'</td>'
       +'<td class="tk">'+highlight(s.ticker,q)+'</td>'
       +'<td class="nm" title="'+escHtml(s.name||'')+'">'+highlight(s.name,q)+'</td>'
       +'<td class="se" title="'+escHtml(s.sector||'')+'">'+escHtml(s.sector||'—')+'</td>'
@@ -747,7 +748,7 @@ function render(){
       +'<td class="c" style="white-space:nowrap">'+circle(s.quality_rank)+trendArrow(s.ticker,'quality')+'</td>'
       +'<td class="c" style="white-space:nowrap">'+circle(s.momentum_rank)+trendArrow(s.ticker,'momentum')+'</td>'
       +'<td class="c" style="white-space:nowrap">'+circle(s.qvm_rank,true)+trendArrow(s.ticker,'qvm')+'</td>'
-      +'<td class="r" style="font-family:monospace;font-size:11px;color:var(--muted)">#'+(s.qvm_pos||'—')+'</td>'
+      
       +'</tr>';
   }
   document.getElementById('tbody').innerHTML=html||
