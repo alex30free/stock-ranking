@@ -25,27 +25,28 @@ from scipy.stats import rankdata
 # ---------------------------------------------------------------------------
 COLUMN_MAP = {
     "ticker":        "Info - Ticker",
-    "name":          "Bolagsnamn",
-    "sector":        "Info - Sektor",
-    "country":       "Info - Land",
-    "market_cap":    "Börsvärde - Senaste SEK",
-    "pe":            "P/E - Senaste",
-    "peg":           "PEG - Senaste",
-    "beta":          "Beta - 1år",
-    "ev_ebit":       "EV/EBIT - Senaste",
-    "ev_sales":      "EV/S - Senaste",
-    "p_fcf":         "P/FCF - Senaste",
-    "roe":           "ROE - Senaste",
-    "roic":          "ROIC - Senaste",
-    "gross_margin":  "Bruttomarg - Senaste",
-    "op_margin":     "EBIT-marg - Senaste",
-    "net_margin":    "Vinstmarg - Senaste",
-    "current_ratio": "Balanslik. - Senaste",
-    "nd_ebitda":     "N.skuld/Ebitda - Senaste",
-    "rev_growth_3y": "Omsätt. tillv. - År. tillv. 3år",
-    "ret_3m":        "Kursutveck. - Utveck.  3m",
-    "ret_6m":        "Kursutveck. - Utveck.  6m",
-    "ret_12m":       "Kursutveck. - Utveck.  1år",
+    "name":          "Company",
+    "sector":        "Info - Sector",
+    "country":       "Info - Country",
+    "market_cap":    "Market Cap - Current SEK",
+    "pe":            "P/E - Current",
+    "peg":           "PEG - Current",
+    "beta":          "Beta - 1y",
+    "ev_ebit":       "EV/EBIT - Current",
+    "ev_sales":      "EV/S - Current",
+    "p_fcf":         "P/FCF - Current",
+    "roe":           "ROE - Current",
+    "roic":          "ROIC - Current",
+    "gross_margin":  "Gross marg - Current",
+    "op_margin":     "EBIT marg - Current",
+    "net_margin":    "Profit marg - Current",
+    "f_score":       "F-Score - Point",
+    "current_ratio": "Current r. - Current",
+    "rev_growth_3y": "Revenue g. - Growth 3y",
+    "nd_ebitda":     "N.Debt/Ebitda - Current",
+    "ret_3m":        "Performance - Perform. 3m",
+    "ret_6m":        "Performance - Perform. 6m",
+    "ret_12m":       "Performance - Perform. 1y",
 }
 
 # ---------------------------------------------------------------------------
@@ -58,14 +59,15 @@ VALUE_WEIGHTS = {
     "inv_ev_sales": 0.10,
 }
 QUALITY_WEIGHTS = {
-    "roe":           0.15,
-    "roic":          0.15,
+    "roe":           0.12,
+    "roic":          0.12,
     "gross_margin":  0.10,
-    "op_margin":     0.15,
-    "net_margin":    0.10,
-    "current_ratio": 0.10,
-    "inv_nd_ebitda": 0.15,
-    "rev_growth_3y": 0.10,
+    "op_margin":     0.12,
+    "net_margin":    0.07,
+    "current_ratio": 0.07,
+    "inv_nd_ebitda": 0.12,
+    "rev_growth_3y": 0.08,
+    "f_score":       0.20,   # Piotroski F-Score (0-9): composite of 9 quality signals
 }
 MOMENTUM_WEIGHTS = {
     "ret_12m": 0.50,
@@ -182,7 +184,7 @@ def build_scores(csv_path):
 
     # Parse numerics
     numeric_cols = [
-        'market_cap', 'pe', 'peg', 'beta', 'ev_ebit', 'ev_sales', 'p_fcf',
+        'market_cap', 'pe', 'peg', 'beta', 'ev_ebit', 'ev_sales', 'p_fcf', 'f_score',
         'roe', 'roic', 'gross_margin', 'op_margin', 'net_margin',
         'current_ratio', 'nd_ebitda', 'rev_growth_3y',
         'ret_3m', 'ret_6m', 'ret_12m',
@@ -218,7 +220,7 @@ def build_scores(csv_path):
 
     # ── Filter: remove ETFs, shells, stubs ─────────────────────────────────
     raw_check = [c for c in [
-        'pe','peg','ev_ebit','p_fcf','roe','roic',
+        'pe','peg','f_score','ev_ebit','p_fcf','roe','roic',
         'gross_margin','op_margin','net_margin',
         'ret_12m','ret_6m','ret_3m',
     ] if c in df.columns]
@@ -285,6 +287,7 @@ def build_scores(csv_path):
             'pegr':          fmt(row.get('pegr')),
             'ev_ebit':       fmt(row.get('ev_ebit')),
             'roic':          fmt(row.get('roic')),
+            'f_score':       fmt(row.get('f_score')),
             'p_fcf':         fmt(row.get('p_fcf')),
             'roe':           fmt(row.get('roe')),
             'op_margin':     fmt(row.get('op_margin')),

@@ -196,9 +196,9 @@ footer a{color:var(--accent);text-decoration:none}
       <div class="fp-label">Market</div>
       <div class="cbtn-row" id="country-bar">
         <button class="cbtn all active" data-country="">&#127758; All <span class="bc" id="cnt-all"></span></button>
-        <button class="cbtn se" data-country="Sverige">&#127480;&#127466; Sweden <span class="bc" id="cnt-se"></span></button>
-        <button class="cbtn no" data-country="Norge">&#127475;&#127476; Norway <span class="bc" id="cnt-no"></span></button>
-        <button class="cbtn dk" data-country="Danmark">&#127465;&#127472; Denmark <span class="bc" id="cnt-dk"></span></button>
+        <button class="cbtn se" data-country="Sweden">&#127480;&#127466; Sweden <span class="bc" id="cnt-se"></span></button>
+        <button class="cbtn no" data-country="Norway">&#127475;&#127476; Norway <span class="bc" id="cnt-no"></span></button>
+        <button class="cbtn dk" data-country="Denmark">&#127465;&#127472; Denmark <span class="bc" id="cnt-dk"></span></button>
         <button class="cbtn fi" data-country="Finland">&#127467;&#127470; Finland <span class="bc" id="cnt-fi"></span></button>
       </div>
     </div>
@@ -375,6 +375,7 @@ footer a{color:var(--accent);text-decoration:none}
   <th data-col="ev_ebit" class="r">EV/EBIT <span class="arr">↕</span></th>
   <th data-col="peg" class="r">PEG <span class="arr">↕</span></th>
   <th data-col="pegr" class="r">PEGR <span class="arr">↕</span></th>
+  <th data-col="f_score" class="r">F-Score <span class="arr">↕</span></th>
   <th data-col="roic" class="r">ROIC% <span class="arr">↕</span></th>
   <th data-col="roe" class="r">ROE% <span class="arr">↕</span></th>
   <th data-col="ret_12m" class="r">12M% <span class="arr">↕</span></th>
@@ -423,8 +424,8 @@ function fmtMcap(m) {
 }
 
 // Flags
-var FLAGS={'Sverige':'&#127480;&#127466;','Norge':'&#127475;&#127476;',
-           'Danmark':'&#127465;&#127472;','Finland':'&#127467;&#127470;'};
+var FLAGS={'Sweden':'&#127480;&#127466;','Norway':'&#127475;&#127476;',
+           'Denmark':'&#127465;&#127472;','Finland':'&#127467;&#127470;'};
 function flag(c){return FLAGS[c]||'';}
 
 var STYLE_DESC={
@@ -531,6 +532,12 @@ function getVisible(){
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 function f1(v){return(v===null||v===undefined||isNaN(v))?'—':Number(v).toFixed(1);}
+function fScore(v){
+  if(v===null||v===undefined||isNaN(v)) return '—';
+  var n=Math.round(Number(v));
+  var col = n>=7?'#66bb6a': n>=5?'#ffb74d': '#ef5350';
+  return '<span style="font-weight:700;color:'+col+'">'+n+'</span>';
+}
 function pegCell(v){
   if(v===null||v===undefined||isNaN(v)) return '—';
   var n=Number(v), txt=n.toFixed(2);
@@ -687,7 +694,7 @@ updateMcapUI();
 
 // ─── Update counts ─────────────────────────────────────────────────────────
 function updateCounts(){
-  var cc={'':0,'Sverige':0,'Norge':0,'Danmark':0,'Finland':0};
+  var cc={'':0,'Sweden':0,'Norway':0,'Denmark':0,'Finland':0};
   var sc={'':0,'Super Stock':0,'High Flyer':0,'Contrarian':0,'Turnaround':0,
           'Sucker Stock':0,'Momentum Trap':0,'Falling Star':0,'Value Trap':0};
   for(var i=0;i<ALL.length;i++){
@@ -696,9 +703,9 @@ function updateCounts(){
     sc['']++; if(s.style) sc[s.style]=(sc[s.style]||0)+1;
   }
   document.getElementById('cnt-all').textContent=cc['']||'';
-  document.getElementById('cnt-se').textContent=cc['Sverige']||'';
-  document.getElementById('cnt-no').textContent=cc['Norge']||'';
-  document.getElementById('cnt-dk').textContent=cc['Danmark']||'';
+  document.getElementById('cnt-se').textContent=cc['Sweden']||'';
+  document.getElementById('cnt-no').textContent=cc['Norway']||'';
+  document.getElementById('cnt-dk').textContent=cc['Denmark']||'';
   document.getElementById('cnt-fi').textContent=cc['Finland']||'';
   document.getElementById('cnt-sall').textContent=sc['']||'';
   document.getElementById('cnt-ss').textContent=sc['Super Stock']||'';
@@ -767,6 +774,7 @@ function render(){
       +'<td class="r">'+f1(s.ev_ebit)+'</td>'
       +'<td class="r">'+pegCell(s.peg)+'</td>'
       +'<td class="r">'+pegrCell(s.pegr)+'</td>'
+      +'<td class="r">'+fScore(s.f_score)+'</td>'
       +'<td class="'+roicCls+'">'+f1(s.roic)+'</td>'
       +'<td class="'+roeCls+'">'+f1(s.roe)+'</td>'
       +'<td class="'+rCls+'">'+ret12+'</td>'
@@ -778,7 +786,7 @@ function render(){
       +'</tr>';
   }
   document.getElementById('tbody').innerHTML=html||
-    '<tr><td colspan="18" style="text-align:center;padding:40px;color:var(--muted)">No stocks match the current filters</td></tr>';
+    '<tr><td colspan="19" style="text-align:center;padding:40px;color:var(--muted)">No stocks match the current filters</td></tr>';
 }
 
 // ─── Country buttons ───────────────────────────────────────────────────────
