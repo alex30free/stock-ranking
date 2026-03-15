@@ -21,10 +21,10 @@ header{display:flex;align-items:center;justify-content:space-between;flex-wrap:w
 .logo span{color:var(--accent)}
 .updated{font-size:11px;color:var(--muted);font-family:monospace}
 
-.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:18px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 15px}
+.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px}
 .card-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:5px}
-.card-value{font-size:26px;font-weight:700;font-family:monospace}
+.card-value{font-size:22px;font-weight:700;font-family:monospace}
 .cn{color:var(--text)}.cv{color:#81c784}.cq{color:#64b5f6}.cm{color:#ffb74d}.cqvm{color:#81c784}
 
 /* ── Filter panel ── */
@@ -120,7 +120,7 @@ tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:rgba(255,255,255,0.026)}
 tbody tr.top10{background:var(--top10bg)}
 tbody tr.top10 td:first-child{border-left:4px solid var(--top10bl)}
-td{padding:8px 11px;font-size:12px;vertical-align:middle}
+td{padding:6px 9px;font-size:12px;vertical-align:middle}
 td.rn{font-family:monospace;color:var(--muted);font-size:11px;text-align:center;width:36px}
 td.tk{font-family:monospace;font-weight:700;color:var(--accent);font-size:13px;white-space:nowrap}
 td.nm{max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -130,9 +130,12 @@ td.r{text-align:right;font-family:monospace;color:var(--muted);font-size:12px}
 td.pos{color:#66bb6a;font-weight:600} td.neg{color:#ef5350;font-weight:600} td.c{text-align:center}
 mark{background:rgba(56,189,248,0.2);color:var(--accent);border-radius:2px;font-style:normal}
 
-.circle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;font-size:12px;font-weight:700;color:#fff;font-family:monospace;letter-spacing:-0.5px}
-.circle.lg{width:40px;height:40px;font-size:14px}
-.g5{background:#1b5e20}.g4{background:#388e3c}.g3{background:#546e7a}.g2{background:#e65100}.g1{background:#b71c1c}.g0{background:#37474f;color:#78909c}
+.circle{position:relative;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;font-size:11px;font-weight:700;color:#fff;font-family:monospace;letter-spacing:-0.5px;flex-direction:column;gap:0}
+.circle.lg{width:44px;height:44px;font-size:13px}
+/* background fill = score colour */
+.g5{background:#1b5e20}.g4{background:#388e3c}.g3{background:#394854}.g2{background:#7a2e00}.g1{background:#7f0000}.g0{background:#1e2530;color:#546e7a}
+/* thin outer ring showing exact score as conic-gradient */
+.circle::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(var(--ring-color,#388e3c) var(--ring-pct,0%), #1e2a38 var(--ring-pct,0%));z-index:-1;opacity:0.9}
 
 .style-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap}
 .st-ss{background:rgba(27,94,32,0.35);color:#a5d6a7}.st-hf{background:rgba(13,71,161,0.35);color:#90caf9}
@@ -387,7 +390,7 @@ footer a{color:var(--accent);text-decoration:none}
 
 <script>
 // ─── State ────────────────────────────────────────────────────────────────
-var ALL=[], IDX=[], SORTED=[], QVM_TOP10=[];
+var ALL=[], IDX=[], SORTED=[], QVM_TOP10=[], PREV_MAP={};
 var sortCol='qvm_rank', sortAsc=false;
 var filterCountry='', filterStyle='', filterText='', showTop10=false;
 var activeSectors = {};   // sector name → true/false (true = INCLUDED)
@@ -437,6 +440,20 @@ function styleBadge(s){
   if(!s) return '<span class="style-badge st-uc">—</span>';
   var desc=STYLE_DESC[s]||'';
   return '<span class="style-badge '+(STYLE_CSS[s]||'st-uc')+'" title="'+escHtml(desc)+'">'+escHtml(s)+'</span>';
+}
+
+function trendArrow(ticker, pillar){
+  var p=PREV_MAP[ticker]; if(!p) return '';
+  var prev=p[pillar], curr=null;
+  for(var i=0;i<ALL.length;i++){
+    if(String(ALL[i].ticker)===String(ticker)){
+      curr=ALL[i][pillar+'_rank']; break;
+    }
+  }
+  if(prev==null||curr==null) return '';
+  var d=curr-prev;
+  if(Math.abs(d)<1.0) return '<sup style="color:#546e7a;font-size:8px"> →</sup>';
+  return d>0?'<sup style="color:#66bb6a;font-size:8px"> ↑</sup>':'<sup style="color:#ef5350;font-size:8px"> ↓</sup>';
 }
 
 // ─── Search index ──────────────────────────────────────────────────────────
@@ -544,9 +561,20 @@ function circleClass(v){
   if(n>=80) return 'g5'; if(n>=60) return 'g4';
   if(n>=40) return 'g3'; if(n>=20) return 'g2'; return 'g1';
 }
+function ringColor(v){
+  if(v===null||v===undefined||isNaN(v)) return '#37474f';
+  var n=Math.round(v);
+  if(n>=80) return '#4caf50'; if(n>=60) return '#8bc34a';
+  if(n>=40) return '#78909c'; if(n>=20) return '#ff7043'; return '#ef5350';
+}
 function circle(v,lg){
-  var lbl=(v===null||v===undefined||isNaN(v))?'—':v.toFixed(2);
-  return '<span class="circle'+(lg?' lg':'')+' '+circleClass(v)+'">'+lbl+'</span>';
+  if(v===null||v===undefined||isNaN(v)){
+    return '<span class="circle'+(lg?' lg':'')+' g0">—</span>';
+  }
+  var pct=(Math.max(0,Math.min(100,v))/100*360).toFixed(1)+'deg';
+  var lbl=v.toFixed(2);
+  var style='--ring-pct:'+pct+';--ring-color:'+ringColor(v);
+  return '<span class="circle'+(lg?' lg':'')+' '+circleClass(v)+'" style="'+style+'">'+lbl+'</span>';
 }
 
 // ─── Sector chips setup ────────────────────────────────────────────────────
@@ -715,10 +743,10 @@ function render(){
       +'<td class="'+roicCls+'">'+f1(s.roic)+'</td>'
       +'<td class="'+roeCls+'">'+f1(s.roe)+'</td>'
       +'<td class="'+rCls+'">'+ret12+'</td>'
-      +'<td class="c">'+circle(s.value_rank)+'</td>'
-      +'<td class="c">'+circle(s.quality_rank)+'</td>'
-      +'<td class="c">'+circle(s.momentum_rank)+'</td>'
-      +'<td class="c">'+circle(s.qvm_rank,true)+'</td>'
+      +'<td class="c" style="white-space:nowrap">'+circle(s.value_rank)+trendArrow(s.ticker,'value')+'</td>'
+      +'<td class="c" style="white-space:nowrap">'+circle(s.quality_rank)+trendArrow(s.ticker,'quality')+'</td>'
+      +'<td class="c" style="white-space:nowrap">'+circle(s.momentum_rank)+trendArrow(s.ticker,'momentum')+'</td>'
+      +'<td class="c" style="white-space:nowrap">'+circle(s.qvm_rank,true)+trendArrow(s.ticker,'qvm')+'</td>'
       +'<td class="r" style="font-family:monospace;font-size:11px;color:var(--muted)">#'+(s.qvm_pos||'—')+'</td>'
       +'</tr>';
   }
@@ -790,6 +818,24 @@ fetch('data/scores.json?_='+Date.now())
       document.getElementById('status').style.display='none';
       document.getElementById('tw').style.display='';
       sortCol='qvm_rank'; sortAsc=false;
+      // trend: load prev, save current
+      PREV_MAP={};
+      try{
+        var raw=localStorage.getItem('qvmrank_prev');
+        if(raw){
+          var pd=JSON.parse(raw);
+          if(pd.updated && pd.updated!==data.updated && pd.stocks){
+            for(var pi=0;pi<pd.stocks.length;pi++){
+              var ps=pd.stocks[pi];
+              PREV_MAP[ps.ticker]={value:ps.value_rank,quality:ps.quality_rank,momentum:ps.momentum_rank,qvm:ps.qvm_rank};
+            }
+          }
+        }
+        localStorage.setItem('qvmrank_prev',JSON.stringify({
+          updated:data.updated,
+          stocks:ALL.map(function(s){return{ticker:s.ticker,value_rank:s.value_rank,quality_rank:s.quality_rank,momentum_rank:s.momentum_rank,qvm_rank:s.qvm_rank};})
+        }));
+      }catch(e){}
       rebuildSort(); render();
     } catch(e) {
       document.getElementById('status').innerHTML=
