@@ -70,25 +70,29 @@ header{display:flex;align-items:center;justify-content:space-between;flex-wrap:w
 .sector-chip.active{background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.4);color:var(--accent)}
 .sector-chip .sn{font-size:10px;opacity:0.6;font-family:monospace}
 
-/* Market cap slider */
+/* Market cap dual-range */
 .mcap-group{flex:0 0 260px}
-.mcap-slider-row{display:flex;align-items:center;gap:10px}
-.mcap-value{font-family:monospace;font-size:13px;font-weight:600;color:var(--accent);min-width:90px;text-align:right;white-space:nowrap}
-input[type=range].mcap-slider{
+.mcap-value{font-family:monospace;font-size:11px;font-weight:600;color:var(--accent);white-space:nowrap;text-align:right}
+.mcap-track-wrap{position:relative;height:18px;margin:4px 0 2px}
+.mcap-track{position:absolute;top:50%;left:0;right:0;height:4px;border-radius:2px;background:var(--border2);transform:translateY(-50%)}
+.mcap-fill{position:absolute;top:50%;height:4px;border-radius:2px;background:var(--accent);transform:translateY(-50%)}
+input[type=range].mcap-thumb{
   -webkit-appearance:none;appearance:none;
-  flex:1;height:4px;border-radius:2px;outline:none;cursor:pointer;
-  background:linear-gradient(to right, var(--accent) var(--pct,0%), var(--border2) var(--pct,0%));
+  position:absolute;top:50%;width:100%;height:4px;
+  background:transparent;outline:none;cursor:pointer;
+  transform:translateY(-50%);pointer-events:none;margin:0;padding:0;
 }
-input[type=range].mcap-slider::-webkit-slider-thumb{
-  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
-  background:var(--accent);border:2px solid var(--bg);cursor:pointer
+input[type=range].mcap-thumb::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--accent);border:2px solid var(--bg);cursor:pointer;
+  pointer-events:all;box-shadow:0 0 0 2px rgba(56,189,248,0.2)
 }
-input[type=range].mcap-slider::-moz-range-thumb{
-  width:14px;height:14px;border-radius:50%;
-  background:var(--accent);border:2px solid var(--bg);cursor:pointer
+input[type=range].mcap-thumb::-moz-range-thumb{
+  width:12px;height:12px;border-radius:50%;border:2px solid var(--bg);
+  background:var(--accent);cursor:pointer;pointer-events:all
 }
-.mcap-presets{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
-.preset-btn{padding:3px 9px;border-radius:12px;border:1px solid var(--border2);background:var(--surface);color:var(--muted);font-size:10px;cursor:pointer;transition:all .14s}
+.mcap-presets{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.preset-btn{padding:2px 7px;border-radius:10px;border:1px solid var(--border2);background:var(--surface);color:var(--muted);font-size:10px;cursor:pointer;transition:all .14s;white-space:nowrap}
 .preset-btn:hover{border-color:var(--accent);color:var(--accent)}
 .preset-btn.active{background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.4);color:var(--accent)}
 
@@ -111,7 +115,7 @@ input[type=range].mcap-slider::-moz-range-thumb{
 .tw{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;min-width:1100px}
 thead th{background:var(--surface);padding:7px 8px;font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600;white-space:nowrap;cursor:pointer;border-bottom:1px solid var(--border2);user-select:none;position:sticky;top:0;z-index:2;text-align:left}
-thead th.r{text-align:right} thead th.c{text-align:center}
+thead th.r{text-align:center} thead th.c{text-align:center}
 thead th:hover{color:var(--text)} thead th.active{color:#81c784}
 .arr{display:inline-block;margin-left:3px;opacity:0.3;font-size:9px}
 th.active .arr{opacity:1}
@@ -126,7 +130,7 @@ td.tk{font-family:monospace;font-weight:700;color:var(--accent);font-size:13px;w
 td.nm{max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 td.se{color:var(--muted);font-size:11px;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 td.co{text-align:center;width:28px;font-size:13px}
-td.r{text-align:right;font-family:monospace;color:var(--muted);font-size:12px}
+td.r{text-align:center;font-family:monospace;color:var(--muted);font-size:12px}
 td.pos{color:#66bb6a;font-weight:600} td.neg{color:#ef5350;font-weight:600} td.c{text-align:center}
 mark{background:rgba(56,189,248,0.2);color:var(--accent);border-radius:2px;font-style:normal}
 
@@ -321,20 +325,22 @@ footer a{color:var(--accent);text-decoration:none}
 
     <div class="mcap-group">
       <div class="fp-label">
-        Min market cap
-        <span class="mcap-value" id="mcap-display">No minimum</span>
+        Market cap
+        <span class="mcap-value" id="mcap-display">Any size</span>
       </div>
-      <div class="mcap-slider-row">
-        <input type="range" class="mcap-slider" id="mcap-slider" min="0" max="100" value="0" step="1">
+      <div class="mcap-track-wrap">
+        <div class="mcap-track"></div>
+        <div class="mcap-fill" id="mcap-fill"></div>
+        <input type="range" class="mcap-thumb" id="mcap-min" min="0" max="100" value="0" step="1">
+        <input type="range" class="mcap-thumb" id="mcap-max" min="0" max="100" value="100" step="1">
       </div>
       <div class="mcap-presets">
-        <button class="preset-btn active" data-mcap="0">Any</button>
-        <button class="preset-btn" data-mcap="100">100M</button>
-        <button class="preset-btn" data-mcap="500">500M</button>
-        <button class="preset-btn" data-mcap="1000">1B</button>
-        <button class="preset-btn" data-mcap="5000">5B</button>
-        <button class="preset-btn" data-mcap="10000">10B</button>
-        <button class="preset-btn" data-mcap="50000">50B</button>
+        <button class="preset-btn active" data-lo="0" data-hi="100">Any</button>
+        <button class="preset-btn" data-lo="0" data-hi="36">&lt;500M</button>
+        <button class="preset-btn" data-lo="0" data-hi="43">&lt;1B</button>
+        <button class="preset-btn" data-lo="36" data-hi="43">500M–1B</button>
+        <button class="preset-btn" data-lo="43" data-hi="57">1B–5B</button>
+        <button class="preset-btn" data-lo="57" data-hi="100">&gt;5B</button>
       </div>
     </div>
 
@@ -394,7 +400,7 @@ var ALL=[], IDX=[], SORTED=[], QVM_TOP10=[], PREV_MAP={};
 var sortCol='qvm_rank', sortAsc=false;
 var filterCountry='', filterStyle='', filterText='', showTop10=false;
 var activeSectors = {};   // sector name → true/false (true = INCLUDED)
-var minMcap = 0;          // MSEK
+var minMcap = 0, maxMcap = 0;  // MSEK (0 = no limit)
 
 // Log scale helpers for slider (0-100 slider → 0–500000 MSEK)
 var MCAP_MIN_LOG = 0;          // slider=0  → 0 MSEK (no filter)
@@ -516,6 +522,7 @@ function getVisible(){
     if(!activeSectors[sec]) continue;
     // market cap
     if(minMcap > 0 && (s.market_cap === null || s.market_cap < minMcap)) continue;
+    if(maxMcap > 0 && (s.market_cap === null || s.market_cap > maxMcap)) continue;
     result.push(idx);
   }
   if(showTop10) result=result.slice(0,10);
@@ -630,34 +637,53 @@ document.getElementById('sec-all-btn').addEventListener('click',function(){
   render();
 });
 
-// ─── Market cap slider ─────────────────────────────────────────────────────
-var slider=document.getElementById('mcap-slider');
+// ─── Market cap dual-range ─────────────────────────────────────────────────
+var mcapMinEl=document.getElementById('mcap-min');
+var mcapMaxEl=document.getElementById('mcap-max');
+var mcapFill =document.getElementById('mcap-fill');
 var mcapDisplay=document.getElementById('mcap-display');
+var maxMcap=0; // 0 = no upper limit
 
-function setMcap(msek){
-  minMcap=msek;
-  var sliderVal=mcapToSlider(msek);
-  slider.value=sliderVal;
-  var pct=(sliderVal/100*100)+'%';
-  slider.style.setProperty('--pct', pct);
-  mcapDisplay.textContent=fmtMcap(msek);
-  // update preset buttons
+function updateMcapUI(){
+  var lo=parseInt(mcapMinEl.value), hi=parseInt(mcapMaxEl.value);
+  mcapFill.style.left=(lo)+'%';
+  mcapFill.style.width=(hi-lo)+'%';
+  var loM=sliderToMcap(lo), hiM=sliderToMcap(hi);
+  minMcap = lo===0 ? 0 : loM;
+  maxMcap = hi===100 ? 0 : hiM;
+  // label
+  var loLbl = lo===0 ? 'Any' : fmtMcap(loM);
+  var hiLbl = hi===100 ? '∞' : fmtMcap(hiM);
+  mcapDisplay.textContent = (lo===0 && hi===100) ? 'Any size' : loLbl+' – '+hiLbl;
+  // highlight matching preset
   document.querySelectorAll('.preset-btn').forEach(function(b){
-    b.classList.toggle('active', parseInt(b.getAttribute('data-mcap'))===msek);
+    b.classList.toggle('active',
+      parseInt(b.getAttribute('data-lo'))===lo &&
+      parseInt(b.getAttribute('data-hi'))===hi);
   });
-  render();
 }
 
-slider.addEventListener('input',function(){
-  var msek=sliderToMcap(parseInt(this.value));
-  setMcap(msek);
+function setMcapRange(lo,hi){
+  mcapMinEl.value=lo; mcapMaxEl.value=hi;
+  updateMcapUI(); render();
+}
+
+mcapMinEl.addEventListener('input',function(){
+  if(parseInt(this.value)>parseInt(mcapMaxEl.value)-5) this.value=parseInt(mcapMaxEl.value)-5;
+  updateMcapUI(); render();
+});
+mcapMaxEl.addEventListener('input',function(){
+  if(parseInt(this.value)<parseInt(mcapMinEl.value)+5) this.value=parseInt(mcapMinEl.value)+5;
+  updateMcapUI(); render();
 });
 
 document.querySelectorAll('.preset-btn').forEach(function(btn){
   btn.addEventListener('click',function(){
-    setMcap(parseInt(this.getAttribute('data-mcap')));
+    setMcapRange(parseInt(this.getAttribute('data-lo')),parseInt(this.getAttribute('data-hi')));
   });
 });
+
+updateMcapUI();
 
 // ─── Update counts ─────────────────────────────────────────────────────────
 function updateCounts(){
