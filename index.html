@@ -130,9 +130,12 @@ td.r{text-align:right;font-family:monospace;color:var(--muted);font-size:12px}
 td.pos{color:#66bb6a;font-weight:600} td.neg{color:#ef5350;font-weight:600} td.c{text-align:center}
 mark{background:rgba(56,189,248,0.2);color:var(--accent);border-radius:2px;font-style:normal}
 
-.circle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;font-size:12px;font-weight:700;color:#fff;font-family:monospace;letter-spacing:-0.5px}
-.circle.lg{width:40px;height:40px;font-size:14px}
-.g5{background:#1b5e20}.g4{background:#388e3c}.g3{background:#546e7a}.g2{background:#e65100}.g1{background:#b71c1c}.g0{background:#37474f;color:#78909c}
+/* ── Score gauge ── */
+.gauge-wrap{display:inline-flex;flex-direction:column;align-items:center;gap:1px}
+.gauge-wrap svg{display:block}
+.gauge-num{font-family:monospace;font-weight:700;font-size:11px;line-height:1;letter-spacing:-0.3px}
+.gauge-wrap.lg svg{width:44px;height:28px}
+.gauge-wrap.lg .gauge-num{font-size:13px}
 
 .style-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap}
 .st-ss{background:rgba(27,94,32,0.35);color:#a5d6a7}.st-hf{background:rgba(13,71,161,0.35);color:#90caf9}
@@ -387,7 +390,7 @@ footer a{color:var(--accent);text-decoration:none}
 
 <script>
 // ─── State ────────────────────────────────────────────────────────────────
-var ALL=[], IDX=[], SORTED=[], QVM_TOP10=[];
+var ALL=[], IDX=[], SORTED=[], QVM_TOP10=[], PREV_MAP={};
 var sortCol='qvm_rank', sortAsc=false;
 var filterCountry='', filterStyle='', filterText='', showTop10=false;
 var activeSectors = {};   // sector name → true/false (true = INCLUDED)
@@ -525,7 +528,9 @@ function fmcap(v){
 }
 function avg(arr){
   var a=arr.filter(function(x){return x!==null&&x!==undefined&&!isNaN(x);});
-  return a.length?Math.round(a.reduce(function(s,x){return s+x;},0)/a.length):'—';
+  if(!a.length) return '—';
+  var mean=a.reduce(function(s,x){return s+x;},0)/a.length;
+  return mean.toFixed(1);
 }
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
@@ -536,15 +541,52 @@ function highlight(str,q){
   for(var w=0;w<words.length;w++) r=r.replace(new RegExp('('+escRe(words[w])+')','gi'),'<mark>$1</mark>');
   return r;
 }
-function circleClass(v){
-  if(v===null||v===undefined||isNaN(v)) return 'g0';
+function gaugeColor(v){
+  if(v===null||v===undefined||isNaN(v)) return '#37474f';
   var n=Math.round(v);
-  if(n>=80) return 'g5'; if(n>=60) return 'g4';
-  if(n>=40) return 'g3'; if(n>=20) return 'g2'; return 'g1';
+  if(n>=80) return '#2e7d32'; if(n>=60) return '#388e3c';
+  if(n>=40) return '#546e7a'; if(n>=20) return '#e65100'; return '#c62828';
+}
+function trendArrow(ticker, pillar){
+  if(!PREV_MAP[ticker]) return '';
+  var prev=PREV_MAP[ticker][pillar];
+  var curr=null;
+  for(var i=0;i<ALL.length;i++){if(ALL[i].ticker===ticker){curr=ALL[i][pillar+'_rank']||ALL[i][pillar];break;}}
+  if(prev===null||prev===undefined||curr===null||curr===undefined) return '';
+  var diff=curr-prev;
+  if(Math.abs(diff)<1) return '<span style="color:#546e7a;font-size:9px;margin-left:1px">→</span>';
+  if(diff>0) return '<span style="color:#66bb6a;font-size:9px;margin-left:1px">↑</span>';
+  return '<span style="color:#ef5350;font-size:9px;margin-left:1px">↓</span>';
+}
+function gaugeTextColor(v){
+  if(v===null||v===undefined||isNaN(v)) return '#78909c';
+  return '#fff';
 }
 function circle(v,lg){
-  var lbl=(v===null||v===undefined||isNaN(v))?'—':v.toFixed(2);
-  return '<span class="circle'+(lg?' lg':'')+' '+circleClass(v)+'">'+lbl+'</span>';
+  // SVG arc gauge: semicircle track + filled arc
+  var w=lg?44:36, h=lg?28:23, cx=w/2, cy=h-2;
+  var r=lg?20:16;
+  // track arc (grey semicircle)
+  var trackD='M '+(cx-r)+' '+cy+' A '+r+' '+r+' 0 0 1 '+(cx+r)+' '+cy;
+  var pct=(v===null||v===undefined||isNaN(v))?0:Math.max(0,Math.min(100,v))/100;
+  // filled arc
+  var angle=Math.PI*pct; // 0=left, PI=right
+  var ex=cx + r*Math.cos(Math.PI - angle);
+  var ey=cy - r*Math.sin(Math.PI - angle);
+  // large-arc flag
+  var laf=pct>0.5?1:0;
+  var fillD=pct<=0?'':'M '+(cx-r)+' '+cy+' A '+r+' '+r+' 0 '+laf+' 1 '+ex.toFixed(2)+' '+ey.toFixed(2);
+  var col=gaugeColor(v);
+  var tcol=gaugeTextColor(v);
+  var sw=lg?4:3;
+  var lbl=(v===null||v===undefined||isNaN(v))?'—':Math.round(v).toString();
+  return '<span class="gauge-wrap'+(lg?' lg':'')+'">'+
+    '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+
+      '<path d="'+trackD+'" fill="none" stroke="#253340" stroke-width="'+sw+'" stroke-linecap="round"/>'+
+      (fillD?'<path d="'+fillD+'" fill="none" stroke="'+col+'" stroke-width="'+sw+'" stroke-linecap="round"/>':'')+
+    '</svg>'+
+    '<span class="gauge-num" style="color:'+tcol+'">'+lbl+'</span>'+
+  '</span>';
 }
 
 // ─── Sector chips setup ────────────────────────────────────────────────────
@@ -663,11 +705,26 @@ function render(){
   for(var t=0;t<QVM_TOP10.length;t++) top10set[ALL[QVM_TOP10[t]].ticker]=true;
 
   var shown=visible.map(function(idx){return ALL[idx];});
-  document.getElementById('c-n').textContent   = shown.length;
-  document.getElementById('c-v').textContent   = avg(shown.map(function(s){return s.value_rank;}));
-  document.getElementById('c-q').textContent   = avg(shown.map(function(s){return s.quality_rank;}));
-  document.getElementById('c-m').textContent   = avg(shown.map(function(s){return s.momentum_rank;}));
-  document.getElementById('c-qvm').textContent = avg(shown.map(function(s){return s.qvm_rank;}));
+  document.getElementById('c-n').textContent   = shown.length.toLocaleString();
+  var avgV=avg(shown.map(function(s){return s.value_rank;}));
+  var avgQ=avg(shown.map(function(s){return s.quality_rank;}));
+  var avgM=avg(shown.map(function(s){return s.momentum_rank;}));
+  var avgQVM=avg(shown.map(function(s){return s.qvm_rank;}));
+  document.getElementById('c-v').textContent   = avgV;
+  document.getElementById('c-q').textContent   = avgQ;
+  document.getElementById('c-m').textContent   = avgM;
+  document.getElementById('c-qvm').textContent = avgQVM;
+  // colour summary cards by value vs 50 baseline
+  function cardColor(v){
+    if(v==='—') return '';
+    var n=parseFloat(v);
+    if(n>=60) return '#81c784'; if(n>=50) return '#aed581';
+    if(n>=40) return '#ffb74d'; return '#ef9a9a';
+  }
+  document.getElementById('c-v').style.color   = cardColor(avgV)   ||'#81c784';
+  document.getElementById('c-q').style.color   = cardColor(avgQ)   ||'#64b5f6';
+  document.getElementById('c-m').style.color   = cardColor(avgM)   ||'#ffb74d';
+  document.getElementById('c-qvm').style.color = cardColor(avgQVM) ||'#81c784';
   document.getElementById('cnt').textContent   = shown.length+' stocks';
 
   var hint=document.getElementById('hint');
@@ -698,10 +755,10 @@ function render(){
       +'<td class="'+roicCls+'">'+f1(s.roic)+'</td>'
       +'<td class="'+roeCls+'">'+f1(s.roe)+'</td>'
       +'<td class="'+rCls+'">'+ret12+'</td>'
-      +'<td class="c">'+circle(s.value_rank)+'</td>'
-      +'<td class="c">'+circle(s.quality_rank)+'</td>'
-      +'<td class="c">'+circle(s.momentum_rank)+'</td>'
-      +'<td class="c">'+circle(s.qvm_rank,true)+'</td>'
+      +'<td class="c" style="white-space:nowrap">'+circle(s.value_rank)+trendArrow(s.ticker,'value')+'</td>'
+      +'<td class="c" style="white-space:nowrap">'+circle(s.quality_rank)+trendArrow(s.ticker,'quality')+'</td>'
+      +'<td class="c" style="white-space:nowrap">'+circle(s.momentum_rank)+trendArrow(s.ticker,'momentum')+'</td>'
+      +'<td class="c" style="white-space:nowrap">'+circle(s.qvm_rank,true)+trendArrow(s.ticker,'qvm')+'</td>'
       +'<td class="r" style="font-family:monospace;font-size:11px;color:var(--muted)">#'+(s.qvm_pos||'—')+'</td>'
       +'</tr>';
   }
@@ -773,6 +830,18 @@ fetch('data/scores.json?_='+Date.now())
       document.getElementById('status').style.display='none';
       document.getElementById('tw').style.display='';
       sortCol='qvm_rank'; sortAsc=false;
+      // ── Trend deltas: compare to previous scores.json update ──
+      var prevKey='qvmrank_prev_'+data.updated;
+      var prevData=null;
+      try{ var raw=localStorage.getItem('qvmrank_prev'); if(raw){var p=JSON.parse(raw); if(p.updated!==data.updated) prevData=p;} }catch(e){}
+      PREV_MAP={};
+      if(prevData&&prevData.stocks){
+        for(var pi=0;pi<prevData.stocks.length;pi++){
+          var ps=prevData.stocks[pi];
+          PREV_MAP[ps.ticker]={v:ps.value_rank,q:ps.quality_rank,m:ps.momentum_rank,qvm:ps.qvm_rank};
+        }
+      }
+      try{ localStorage.setItem('qvmrank_prev', JSON.stringify({updated:data.updated,stocks:ALL.map(function(s){return {ticker:s.ticker,value_rank:s.value_rank,quality_rank:s.quality_rank,momentum_rank:s.momentum_rank,qvm_rank:s.qvm_rank};})})); }catch(e){}
       rebuildSort(); render();
     } catch(e) {
       document.getElementById('status').innerHTML=
