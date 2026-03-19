@@ -57,6 +57,10 @@ header{display:flex;align-items:center;justify-content:space-between;flex-wrap:w
 .sbtn{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--muted);font-size:11px;font-weight:500;cursor:pointer;user-select:none;transition:all .14s;white-space:nowrap;position:relative}
 .sbtn:hover{border-color:rgba(255,255,255,0.28);color:var(--text)}.sbtn.active{color:#fff;border-color:transparent}.sbtn .bc{font-size:10px;opacity:0.6;font-family:monospace}
 .sbtn[data-style=""].active{background:#1e3a5f}.sbtn[data-style="Super Stock"].active{background:#1b5e20}.sbtn[data-style="High Flyer"].active{background:#0d47a1}.sbtn[data-style="Contrarian"].active{background:#4a148c}.sbtn[data-style="Turnaround"].active{background:#e65100}.sbtn[data-style="Sucker Stock"].active{background:#b71c1c}.sbtn[data-style="Momentum Trap"].active{background:#880e4f}.sbtn[data-style="Falling Star"].active{background:#37474f}.sbtn[data-style="Value Trap"].active{background:#f57f17;color:#111}
+.sbtn-featured{border-color:rgba(255,255,255,0.22);color:var(--text)}
+.sbtn-featured:hover{border-color:rgba(255,255,255,0.4)!important}
+.sbtn-dim{opacity:0.55}
+.sbtn-dim:hover{opacity:1}
 .sbtn .tip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);z-index:9999;background:#1a2535;border:1px solid var(--border2);border-radius:8px;padding:10px 13px;width:300px;max-width:90vw;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,0.5)}
 .sbtn:hover .tip{display:block}.sbtn .tip-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:5px;white-space:nowrap}
 .sbtn .tip-qvm{font-size:10px;font-family:monospace;margin-bottom:6px;display:flex;gap:4px}.sbtn .tip-qvm span{padding:2px 6px;border-radius:10px;font-weight:600;font-size:10px}
@@ -139,7 +143,7 @@ footer a{color:var(--accent);text-decoration:none}
   </div>
 </header>
 
-<div class="alert-overlay" id="alert-overlay">
+<div class="alert-overlay" id="alert-overlay" onclick="closeAlerts(event)">
   <div class="alert-modal">
     <div class="alert-modal-head">
       <h2>&#128276; Score alerts</h2>
@@ -172,24 +176,30 @@ footer a{color:var(--accent);text-decoration:none}
     </div>
     <div class="style-group">
       <div class="fp-label">Style archetype</div>
-      <div class="sbtn-row" id="style-bar">
-        <button class="sbtn active" data-style="">All <span class="bc" id="cnt-sall"></span></button>
-        <button class="sbtn" data-style="Super Stock">&#11088; Super Stock <span class="bc" id="cnt-ss"></span>
-          <div class="tip"><div class="tip-title">&#11088; Super Stock</div><div class="tip-qvm"><span class="tip-hi">High Quality</span><span class="tip-hi">High Value</span><span class="tip-hi">High Momentum</span></div><div class="tip-desc">The holy grail. Quality business, cheap, with strong momentum. Historically best-performing archetype.</div></div></button>
-        <button class="sbtn" data-style="High Flyer">&#128640; High Flyer <span class="bc" id="cnt-hf"></span>
-          <div class="tip"><div class="tip-title">&#128640; High Flyer</div><div class="tip-qvm"><span class="tip-hi">High Quality</span><span class="tip-lo">Low Value</span><span class="tip-hi">High Momentum</span></div><div class="tip-desc">Great business, strong momentum, but expensive. Growth must continue to justify the price.</div></div></button>
-        <button class="sbtn" data-style="Contrarian">&#129504; Contrarian <span class="bc" id="cnt-co"></span>
-          <div class="tip"><div class="tip-title">&#129504; Contrarian</div><div class="tip-qvm"><span class="tip-hi">High Quality</span><span class="tip-hi">High Value</span><span class="tip-lo">Low Momentum</span></div><div class="tip-desc">Quality at a cheap price, out of favour right now. Patience required — margin of safety is real.</div></div></button>
-        <button class="sbtn" data-style="Turnaround">&#128200; Turnaround <span class="bc" id="cnt-ta"></span>
-          <div class="tip"><div class="tip-title">&#128200; Turnaround</div><div class="tip-qvm"><span class="tip-lo">Low Quality</span><span class="tip-hi">High Value</span><span class="tip-hi">High Momentum</span></div><div class="tip-desc">Cheap with rising momentum. Quality still low but improving. High risk/reward.</div></div></button>
-        <button class="sbtn" data-style="Value Trap">&#9888; Value Trap <span class="bc" id="cnt-vt"></span>
-          <div class="tip"><div class="tip-title">&#9888; Value Trap</div><div class="tip-qvm"><span class="tip-lo">Low Quality</span><span class="tip-hi">High Value</span><span class="tip-lo">Low Momentum</span></div><div class="tip-desc">Looks cheap but quality is poor. Cheap for a reason. Many value traps never recover.</div></div></button>
-        <button class="sbtn" data-style="Momentum Trap">&#128203; Mom. Trap <span class="bc" id="cnt-mt"></span>
-          <div class="tip"><div class="tip-title">&#128203; Momentum Trap</div><div class="tip-qvm"><span class="tip-lo">Low Quality</span><span class="tip-lo">Low Value</span><span class="tip-hi">High Momentum</span></div><div class="tip-desc">Expensive, poor quality, riding momentum. Dangerous when the wave breaks.</div></div></button>
-        <button class="sbtn" data-style="Falling Star">&#11835; Falling Star <span class="bc" id="cnt-fs"></span>
-          <div class="tip"><div class="tip-title">&#11835; Falling Star</div><div class="tip-qvm"><span class="tip-hi">High Quality</span><span class="tip-lo">Low Value</span><span class="tip-lo">Low Momentum</span></div><div class="tip-desc">Quality still there but price stalling and expensive. Former high-flyer losing its shine.</div></div></button>
-        <button class="sbtn" data-style="Sucker Stock">&#128561; Sucker Stock <span class="bc" id="cnt-su"></span>
-          <div class="tip"><div class="tip-title">&#128561; Sucker Stock</div><div class="tip-qvm"><span class="tip-lo">Low Quality</span><span class="tip-lo">Low Value</span><span class="tip-lo">Low Momentum</span></div><div class="tip-desc">Poor on every dimension. Historically the worst-performing archetype. Avoid.</div></div></button>
+      <div id="style-bar">
+        <!-- Row 1: All + the 4 high-priority archetypes -->
+        <div class="sbtn-row" style="margin-bottom:5px">
+          <button class="sbtn active" data-style="">All <span class="bc" id="cnt-sall"></span></button>
+          <button class="sbtn sbtn-featured" data-style="Super Stock">&#11088; Super Stock <span class="bc" id="cnt-ss"></span>
+            <div class="tip"><div class="tip-title">&#11088; Super Stock</div><div class="tip-qvm"><span class="tip-hi">High Quality</span><span class="tip-hi">High Value</span><span class="tip-hi">High Momentum</span></div><div class="tip-desc">The holy grail. Quality business, cheap, with strong momentum. Historically best-performing archetype.</div></div></button>
+          <button class="sbtn sbtn-featured" data-style="High Flyer">&#128640; High Flyer <span class="bc" id="cnt-hf"></span>
+            <div class="tip"><div class="tip-title">&#128640; High Flyer</div><div class="tip-qvm"><span class="tip-hi">High Quality</span><span class="tip-lo">Low Value</span><span class="tip-hi">High Momentum</span></div><div class="tip-desc">Great business, strong momentum, but expensive. Growth must continue to justify the price.</div></div></button>
+          <button class="sbtn sbtn-featured" data-style="Contrarian">&#129504; Contrarian <span class="bc" id="cnt-co"></span>
+            <div class="tip"><div class="tip-title">&#129504; Contrarian</div><div class="tip-qvm"><span class="tip-hi">High Quality</span><span class="tip-hi">High Value</span><span class="tip-lo">Low Momentum</span></div><div class="tip-desc">Quality at a cheap price, out of favour right now. Patience required — margin of safety is real.</div></div></button>
+          <button class="sbtn sbtn-featured" data-style="Turnaround">&#128200; Turnaround <span class="bc" id="cnt-ta"></span>
+            <div class="tip"><div class="tip-title">&#128200; Turnaround</div><div class="tip-qvm"><span class="tip-lo">Low Quality</span><span class="tip-hi">High Value</span><span class="tip-hi">High Momentum</span></div><div class="tip-desc">Cheap with rising momentum. Quality still low but improving. High risk/reward.</div></div></button>
+        </div>
+        <!-- Row 2: the 4 avoid/watch archetypes, visually dimmer -->
+        <div class="sbtn-row">
+          <button class="sbtn sbtn-dim" data-style="Value Trap">&#9888; Value Trap <span class="bc" id="cnt-vt"></span>
+            <div class="tip"><div class="tip-title">&#9888; Value Trap</div><div class="tip-qvm"><span class="tip-lo">Low Quality</span><span class="tip-hi">High Value</span><span class="tip-lo">Low Momentum</span></div><div class="tip-desc">Looks cheap but quality is poor. Cheap for a reason. Many value traps never recover.</div></div></button>
+          <button class="sbtn sbtn-dim" data-style="Momentum Trap">&#128203; Mom. Trap <span class="bc" id="cnt-mt"></span>
+            <div class="tip"><div class="tip-title">&#128203; Momentum Trap</div><div class="tip-qvm"><span class="tip-lo">Low Quality</span><span class="tip-lo">Low Value</span><span class="tip-hi">High Momentum</span></div><div class="tip-desc">Expensive, poor quality, riding momentum. Dangerous when the wave breaks.</div></div></button>
+          <button class="sbtn sbtn-dim" data-style="Falling Star">&#11835; Falling Star <span class="bc" id="cnt-fs"></span>
+            <div class="tip"><div class="tip-title">&#11835; Falling Star</div><div class="tip-qvm"><span class="tip-hi">High Quality</span><span class="tip-lo">Low Value</span><span class="tip-lo">Low Momentum</span></div><div class="tip-desc">Quality still there but price stalling and expensive. Former high-flyer losing its shine.</div></div></button>
+          <button class="sbtn sbtn-dim" data-style="Sucker Stock">&#128561; Sucker Stock <span class="bc" id="cnt-su"></span>
+            <div class="tip"><div class="tip-title">&#128561; Sucker Stock</div><div class="tip-qvm"><span class="tip-lo">Low Quality</span><span class="tip-lo">Low Value</span><span class="tip-lo">Low Momentum</span></div><div class="tip-desc">Poor on every dimension. Historically the worst-performing archetype. Avoid.</div></div></button>
+        </div>
       </div>
     </div>
   </div>
@@ -416,7 +426,7 @@ function render(){
 }
 
 document.getElementById('country-bar').addEventListener('click',function(e){var b=e.target.closest('.cbtn');if(!b)return;filterCountry=b.getAttribute('data-country');document.querySelectorAll('.cbtn').forEach(function(x){x.classList.remove('active');});b.classList.add('active');render();});
-document.getElementById('style-bar').addEventListener('click',function(e){var b=e.target.closest('.sbtn');if(!b)return;filterStyle=b.getAttribute('data-style');document.querySelectorAll('.sbtn').forEach(function(x){x.classList.remove('active');});b.classList.add('active');render();});
+document.getElementById('style-bar').addEventListener('click',function(e){var b=e.target.closest('.sbtn');if(!b)return;filterStyle=b.getAttribute('data-style');document.querySelectorAll('#style-bar .sbtn').forEach(function(x){x.classList.remove('active');});b.classList.add('active');render();});
 document.getElementById('thead').addEventListener('click',function(e){var th=e.target.closest('th[data-col]');if(!th)return;var col=th.getAttribute('data-col');if(!col)return;sortAsc=(sortCol===col)?!sortAsc:false;sortCol=col;document.querySelectorAll('thead th').forEach(function(h){h.classList.remove('active');var a=h.querySelector('.arr');if(a)a.textContent='↕';});th.classList.add('active');var a=th.querySelector('.arr');if(a)a.textContent=sortAsc?'↑':'↓';rebuildSort();render();});
 
 var srchEl=document.getElementById('srch'),clearEl=document.getElementById('clear-btn');
