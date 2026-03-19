@@ -279,7 +279,7 @@ function fmcap(v){if(v==null||isNaN(v))return'—';if(v>=1000000)return(v/100000
 
 var FLAGS={Sweden:'&#127480;&#127466;',Norway:'&#127475;&#127476;',Denmark:'&#127465;&#127472;',Finland:'&#127467;&#127470;'};
 function flag(c){return FLAGS[c]||'';}
-var SCSS={Super Stock:'st-ss','High Flyer':'st-hf',Contrarian:'st-co',Turnaround:'st-ta','Sucker Stock':'st-su','Momentum Trap':'st-mt','Falling Star':'st-fs','Value Trap':'st-vt'};
+var SCSS={'Super Stock':'st-ss','High Flyer':'st-hf','Contrarian':'st-co','Turnaround':'st-ta','Sucker Stock':'st-su','Momentum Trap':'st-mt','Falling Star':'st-fs','Value Trap':'st-vt'};
 function styleBadge(s){if(!s)return'<span class="style-badge st-uc">—</span>';return'<span class="style-badge '+(SCSS[s]||'st-uc')+'">'+esc(s)+'</span>';}
 
 function trendArrow(ticker,pillar){
@@ -361,7 +361,7 @@ updateMcapUI();
 
 function updateCounts(){
   var cc={'':0,Sweden:0,Norway:0,Denmark:0,Finland:0};
-  var sc={'':0,'Super Stock':0,'High Flyer':0,Contrarian:0,Turnaround:0,'Sucker Stock':0,'Momentum Trap':0,'Falling Star':0,'Value Trap':0};
+  var sc={'':0,'Super Stock':0,'High Flyer':0,'Contrarian':0,'Turnaround':0,'Sucker Stock':0,'Momentum Trap':0,'Falling Star':0,'Value Trap':0};
   for(var i=0;i<ALL.length;i++){var s=ALL[i];cc['']++;cc[s.country]=(cc[s.country]||0)+1;sc['']++;if(s.style)sc[s.style]=(sc[s.style]||0)+1;}
   ['all','se','no','dk','fi'].forEach(function(k,i){document.getElementById('cnt-'+k).textContent=[cc[''],cc.Sweden,cc.Norway,cc.Denmark,cc.Finland][i]||'';});
   document.getElementById('cnt-sall').textContent=sc['']||'';
