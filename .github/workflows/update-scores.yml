@@ -2,10 +2,11 @@
 #
 # Trigger: Whenever you push a new CSV to data/ (weekly workflow)
 # The action:
-#   1. Installs Python deps
-#   2. Runs process.py
-#   3. Commits the updated scores.json back to the repo
-#   4. GitHub Pages rebuilds automatically (no extra deploy step needed)
+#   1. Archives current scores.json → scores_prev.json  (powers cross-device alerts)
+#   2. Installs Python deps
+#   3. Runs process.py
+#   4. Commits scores.json + scores_prev.json back to the repo
+#   5. GitHub Pages rebuilds automatically (no extra deploy step needed)
 
 name: Update Stock Scores
 
@@ -32,7 +33,22 @@ jobs:
         uses: actions/checkout@v4
 
       # ----------------------------------------------------------------
-      # 2. Set up Python
+      # 2. Archive previous scores before overwriting
+      #    This is what powers the cross-device alerts in the UI —
+      #    scores_prev.json is served as a static file from GitHub Pages
+      #    so any browser on any device can compare old vs new.
+      # ----------------------------------------------------------------
+      - name: Archive previous scores
+        run: |
+          if [ -f data/scores.json ]; then
+            cp data/scores.json data/scores_prev.json
+            echo "Archived scores.json → scores_prev.json"
+          else
+            echo "No existing scores.json to archive (first run)"
+          fi
+
+      # ----------------------------------------------------------------
+      # 3. Set up Python
       # ----------------------------------------------------------------
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -40,14 +56,14 @@ jobs:
           python-version: "3.11"
 
       # ----------------------------------------------------------------
-      # 3. Install dependencies
+      # 4. Install dependencies
       # ----------------------------------------------------------------
       - name: Install dependencies
         run: |
           pip install pandas scipy openpyxl
 
       # ----------------------------------------------------------------
-      # 4. Convert XLSX → CSV if needed (Börsdata sometimes exports xlsx)
+      # 5. Convert XLSX → CSV if needed (Börsdata sometimes exports xlsx)
       # ----------------------------------------------------------------
       - name: Convert XLSX to CSV if present
         run: |
@@ -63,7 +79,7 @@ jobs:
           EOF
 
       # ----------------------------------------------------------------
-      # 5. Find the CSV (newest file in data/ matching *export* or *börsdata*)
+      # 6. Find the CSV (newest file in data/ matching *export* or *börsdata*)
       # ----------------------------------------------------------------
       - name: Detect CSV input file
         id: detect
@@ -78,7 +94,7 @@ jobs:
           echo "Using: $FILE"
 
       # ----------------------------------------------------------------
-      # 6. Run the scoring script
+      # 7. Run the scoring script
       # ----------------------------------------------------------------
       - name: Run process.py
         run: |
@@ -87,13 +103,13 @@ jobs:
             --output data/scores.json
 
       # ----------------------------------------------------------------
-      # 7. Commit & push scores.json
+      # 8. Commit & push scores.json + scores_prev.json
       # ----------------------------------------------------------------
       - name: Commit updated scores
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/scores.json
+          git add data/scores.json data/scores_prev.json
           # Only commit if there are changes
           git diff --cached --quiet || \
             git commit -m "chore: update scores.json $(date -u +'%Y-%m-%d')"
