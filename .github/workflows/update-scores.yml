@@ -1,0 +1,116 @@
+# .github/workflows/update-scores.yml
+#
+# Trigger: Whenever you push a new CSV to data/ (weekly workflow)
+# The action:
+#   1. Archives current scores.json → scores_prev.json  (powers cross-device alerts)
+#   2. Installs Python deps
+#   3. Runs process.py
+#   4. Commits scores.json + scores_prev.json back to the repo
+#   5. GitHub Pages rebuilds automatically (no extra deploy step needed)
+
+name: Update Stock Scores
+
+on:
+  push:
+    paths:
+      - "data/*.csv"
+      - "data/*.xlsx"
+  workflow_dispatch:          # also allows manual trigger from GitHub UI
+  schedule:
+    - cron: "0 8 * * 1"       # optional: auto-run every Monday 08:00 UTC
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write           # needed to commit scores.json back
+
+    steps:
+      # ----------------------------------------------------------------
+      # 1. Checkout repo
+      # ----------------------------------------------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ----------------------------------------------------------------
+      # 2. Archive previous scores before overwriting
+      #    This is what powers the cross-device alerts in the UI —
+      #    scores_prev.json is served as a static file from GitHub Pages
+      #    so any browser on any device can compare old vs new.
+      # ----------------------------------------------------------------
+      - name: Archive previous scores
+        run: |
+          if [ -f data/scores.json ]; then
+            cp data/scores.json data/scores_prev.json
+            echo "Archived scores.json → scores_prev.json"
+          else
+            echo "No existing scores.json to archive (first run)"
+          fi
+
+      # ----------------------------------------------------------------
+      # 3. Set up Python
+      # ----------------------------------------------------------------
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # ----------------------------------------------------------------
+      # 4. Install dependencies
+      # ----------------------------------------------------------------
+      - name: Install dependencies
+        run: |
+          pip install pandas scipy openpyxl
+
+      # ----------------------------------------------------------------
+      # 5. Convert XLSX → CSV if needed (Börsdata sometimes exports xlsx)
+      # ----------------------------------------------------------------
+      - name: Convert XLSX to CSV if present
+        run: |
+          python - <<'EOF'
+          import glob, os
+          import pandas as pd
+
+          for xlsx in glob.glob("data/*.xlsx"):
+              csv_path = xlsx.replace(".xlsx", ".csv")
+              df = pd.read_excel(xlsx)
+              df.to_csv(csv_path, index=False, sep=",")
+              print(f"Converted {xlsx} → {csv_path}")
+          EOF
+
+      # ----------------------------------------------------------------
+      # 6. Find the CSV (newest file in data/ matching *export* or *börsdata*)
+      # ----------------------------------------------------------------
+      - name: Detect CSV input file
+        id: detect
+        run: |
+          # Pick the most recently modified CSV in data/
+          FILE=$(ls -t data/*.csv 2>/dev/null | head -1)
+          if [ -z "$FILE" ]; then
+            echo "No CSV found in data/ — exiting"
+            exit 1
+          fi
+          echo "input=$FILE" >> "$GITHUB_OUTPUT"
+          echo "Using: $FILE"
+
+      # ----------------------------------------------------------------
+      # 7. Run the scoring script
+      # ----------------------------------------------------------------
+      - name: Run process.py
+        run: |
+          python process.py \
+            --input  "${{ steps.detect.outputs.input }}" \
+            --output data/scores.json
+
+      # ----------------------------------------------------------------
+      # 8. Commit & push scores.json + scores_prev.json
+      # ----------------------------------------------------------------
+      - name: Commit updated scores
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/scores.json data/scores_prev.json
+          # Only commit if there are changes
+          git diff --cached --quiet || \
+            git commit -m "chore: update scores.json $(date -u +'%Y-%m-%d')"
+          git push
