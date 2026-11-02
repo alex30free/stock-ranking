@@ -334,13 +334,13 @@ function f1(v){return(v==null||isNaN(v))?'—':Number(v).toFixed(1);}
 function fScore(v){if(v==null||isNaN(v))return'—';var n=Math.round(Number(v));return'<span style="font-weight:700;color:'+(n>=7?'#66bb6a':n>=5?'#ffb74d':'#ef5350')+'">'+n+'</span>';}
 function pegC(v){if(v==null||isNaN(v))return'—';var n=Number(v);return n<1?'<span style="color:#ffd54f;font-weight:600">'+n.toFixed(2)+'</span>':n.toFixed(2);}
 function pegrC(v){if(v==null||isNaN(v))return'—';var n=Number(v);return n<1?'<span style="background:rgba(255,213,79,0.15);color:#ffd54f;font-weight:600;padding:1px 5px;border-radius:4px">'+n.toFixed(2)+'</span>':n.toFixed(2);}
-function avg(arr){var a=arr.filter(function(x){return x!=null&&!isNaN(x);});if(!a.length)return'—';return(a.reduce(function(s,x){return s+x;},0)/a.length).toFixed(1);}
+function avg(arr){var a=arr.filter(function(x){return x!=null&&!isNaN(x);});if(!a.length)return'—';return Math.round(a.reduce(function(s,x){return s+x;},0)/a.length);}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 function hl(str,q){if(!q||!str)return esc(str||'');var words=q.trim().split(/\s+/).filter(function(w){return w.length>0;});var r=esc(str);for(var w=0;w<words.length;w++)r=r.replace(new RegExp('('+escRe(words[w])+')','gi'),'<mark>$1</mark>');return r;}
 function cClass(v){var n=Math.round(v||0);if(n>=80)return'g5';if(n>=60)return'g4';if(n>=40)return'g3';if(n>=20)return'g2';return'g1';}
 function rColor(v){var n=Math.round(v||0);if(n>=80)return'#4caf50';if(n>=60)return'#8bc34a';if(n>=40)return'#78909c';if(n>=20)return'#ff7043';return'#ef5350';}
-function circle(v,lg){if(v==null||isNaN(v))return'<span class="circle'+(lg?' lg':'')+' g0">—</span>';var pct=(Math.max(0,Math.min(100,v))/100*360).toFixed(1)+'deg';return'<span class="circle'+(lg?' lg':'')+' '+cClass(v)+'" style="--ring-pct:'+pct+';--ring-color:'+rColor(v)+'">'+v.toFixed(2)+'</span>';}
+function circle(v,lg){if(v==null||isNaN(v))return'<span class="circle'+(lg?' lg':'')+' g0">—</span>';var pct=(Math.max(0,Math.min(100,v))/100*360).toFixed(1)+'deg';return'<span class="circle'+(lg?' lg':'')+' '+cClass(v)+'" style="--ring-pct:'+pct+';--ring-color:'+rColor(v)+'">'+Math.round(v)+'</span>';}
 function cardColor(v){if(v==='—')return'';var n=parseFloat(v);if(n>=60)return'#81c784';if(n>=50)return'#aed581';if(n>=40)return'#ffb74d';return'#ef9a9a';}
 
 function buildSectorChips(stocks){
@@ -399,7 +399,7 @@ function render(){
     var s=ALL[visible[i]],isTop=top10set[s.ticker];
     var r12=(s.ret_12m!=null)?((s.ret_12m>=0?'+':'')+f1(s.ret_12m)+'%'):'—';
     var rC=s.ret_12m==null?'r':s.ret_12m>=0?'r pos':'r neg';
-    html+='<tr class="'+(isTop?'top10':((s.qvm_rank||0)>90?'qvm90':''))+'">'
+    html+='<tr class="'+(isTop?'top10':(Math.round(s.qvm_rank||0)>90?'qvm90':''))+'">'
       +'<td class="rn">'+(i+1)+'</td>'
       +'<td class="r" style="font-family:monospace;font-size:12px;font-weight:700;color:var(--text)">#'+(s.qvm_pos||'—')+'</td>'
       +'<td class="tk">'+hl(s.ticker,q)+'</td>'
@@ -445,10 +445,10 @@ function openAlerts(){
   sub.textContent='vs. previous update';
   var html='<div class="alert-section alert-rising"><div class="alert-sec-title">&#11088; New above 90 ('+risingAlerts.length+')</div>';
   if(!risingAlerts.length)html+='<div class="alert-empty">No stocks crossed above 90 this update</div>';
-  else risingAlerts.forEach(function(a){html+='<div class="alert-row"><span class="alert-tk">'+esc(a.ticker)+'</span><span class="alert-nm">'+esc(a.name)+'</span><div class="alert-scores"><span class="alert-chip was">'+a.was.toFixed(1)+'</span><span class="alert-arrow">&#8594;</span><span class="alert-chip now-g">'+a.now.toFixed(1)+'</span></div></div>';});
+  else risingAlerts.forEach(function(a){html+='<div class="alert-row"><span class="alert-tk">'+esc(a.ticker)+'</span><span class="alert-nm">'+esc(a.name)+'</span><div class="alert-scores"><span class="alert-chip was">'+Math.round(a.was)+'</span><span class="alert-arrow">&#8594;</span><span class="alert-chip now-g">'+Math.round(a.now)+'</span></div></div>';});
   html+='</div><div class="alert-section alert-fallen"><div class="alert-sec-title">&#9660; Dropped below 70 ('+fallenAlerts.length+')</div>';
   if(!fallenAlerts.length)html+='<div class="alert-empty">No stocks dropped below 70 this update</div>';
-  else fallenAlerts.forEach(function(a){html+='<div class="alert-row"><span class="alert-tk">'+esc(a.ticker)+'</span><span class="alert-nm">'+esc(a.name)+'</span><div class="alert-scores"><span class="alert-chip was">'+a.was.toFixed(1)+'</span><span class="alert-arrow">&#8594;</span><span class="alert-chip now-a">'+a.now.toFixed(1)+'</span></div></div>';});
+  else fallenAlerts.forEach(function(a){html+='<div class="alert-row"><span class="alert-tk">'+esc(a.ticker)+'</span><span class="alert-nm">'+esc(a.name)+'</span><div class="alert-scores"><span class="alert-chip was">'+Math.round(a.was)+'</span><span class="alert-arrow">&#8594;</span><span class="alert-chip now-a">'+Math.round(a.now)+'</span></div></div>';});
   html+='</div>';
   body.innerHTML=html;
 }
