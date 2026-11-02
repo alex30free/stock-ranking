@@ -104,7 +104,7 @@ thead th{background:var(--surface);padding:7px 8px;font-size:10px;text-transform
 thead th.r{text-align:center}thead th.c{text-align:center}thead th:hover{color:var(--text)}thead th.active{color:#81c784}
 .arr{display:inline-block;margin-left:3px;opacity:0.3;font-size:9px}th.active .arr{opacity:1}
 tbody tr{border-bottom:1px solid var(--border);transition:background .08s}tbody tr:last-child{border-bottom:none}tbody tr:hover{background:rgba(255,255,255,0.026)}
-tbody tr.top10{background:var(--top10bg)}tbody tr.top10 td:first-child{border-left:4px solid var(--top10bl)}
+tbody tr.top10{background:var(--top10bg)}tbody tr.top10 td:first-child{border-left:4px solid var(--top10bl)}tbody tr.qvm90{background:rgba(245,158,11,0.055)}tbody tr.qvm90 td:first-child{border-left:4px solid rgba(245,158,11,0.55)}
 td{padding:5px 7px;font-size:12px;vertical-align:middle}
 td.rn{font-family:monospace;color:var(--muted);font-size:11px;text-align:center;width:36px}
 td.tk{font-family:monospace;font-weight:700;color:var(--accent);font-size:13px;white-space:nowrap}
@@ -399,7 +399,7 @@ function render(){
     var s=ALL[visible[i]],isTop=top10set[s.ticker];
     var r12=(s.ret_12m!=null)?((s.ret_12m>=0?'+':'')+f1(s.ret_12m)+'%'):'—';
     var rC=s.ret_12m==null?'r':s.ret_12m>=0?'r pos':'r neg';
-    html+='<tr class="'+(isTop?'top10':'')+'">'
+    html+='<tr class="'+(isTop?'top10':((s.qvm_rank||0)>90?'qvm90':''))+'">'
       +'<td class="rn">'+(i+1)+'</td>'
       +'<td class="r" style="font-family:monospace;font-size:12px;font-weight:700;color:var(--text)">#'+(s.qvm_pos||'—')+'</td>'
       +'<td class="tk">'+hl(s.ticker,q)+'</td>'
