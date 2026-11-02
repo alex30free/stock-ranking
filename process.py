@@ -31,8 +31,14 @@ COLUMN_MAP = {
 
 VALUE_WEIGHTS    = {"inv_pe":0.25,"inv_ev_ebit":0.35,"inv_p_fcf":0.30,"inv_ev_sales":0.10}
 QUALITY_WEIGHTS  = {"roe":0.12,"roic":0.12,"gross_margin":0.10,"op_margin":0.12,
-                    "net_margin":0.07,"current_ratio":0.07,"inv_nd_ebitda":0.12,
+                    "net_margin":0.07,"current_ratio":0.07,"neg_nd_ebitda":0.12,
                     "rev_growth_3y":0.08,"f_score":0.20}
+
+# Hard cut-offs: stocks failing any of these are removed from the list entirely
+# (before ranking, so percentiles are computed among valid companies only).
+# A missing value does not trigger the cut-off.
+CUTOFF_NONPOSITIVE = ["pe", "ev_ebit"]   # value: P/E <= 0 or EV/EBIT <= 0 -> loss-making, out
+CUTOFF_NEGATIVE    = ["roe", "roic"]     # quality: ROE < 0 or ROIC < 0 -> destroying capital, out
 MOMENTUM_WEIGHTS = {"ret_12m":0.50,"ret_6m":0.30,"ret_3m":0.20}
 STYLE_MAP = {
     (True,True,True):"Super Stock",(True,False,True):"High Flyer",
@@ -95,18 +101,44 @@ def build_scores(csv_path):
     df = df[df['ticker'].notna() & (df['ticker'] != '') & (df['ticker'] != 'nan')].copy()
     print(f"  After ticker filter: {len(df)} rows")
 
-    for col in ['market_cap','pe','peg','beta','ev_ebit','ev_sales','p_fcf','f_score',
+    num_cols = ['market_cap','pe','peg','beta','ev_ebit','ev_sales','p_fcf','f_score',
                 'roe','roic','gross_margin','op_margin','net_margin','current_ratio',
-                'nd_ebitda','rev_growth_3y','ret_3m','ret_6m','ret_12m']:
+                'nd_ebitda','rev_growth_3y','ret_3m','ret_6m','ret_12m']
+    for col in num_cols:
         if col in df.columns:
             df[col] = clean(df[col])
-            if df[col].notna().sum() > 20:
-                df[col] = winsorize(df[col])
+
+    # --- Hard cut-offs (on raw values, before winsorizing) ---
+    before = len(df)
+    bad = pd.Series(False, index=df.index)
+    for col in CUTOFF_NONPOSITIVE:
+        if col in df.columns:
+            hit = df[col] <= 0
+            print(f"  Cut-off {col} <= 0: {int(hit.sum())} stocks")
+            bad |= hit
+    for col in CUTOFF_NEGATIVE:
+        if col in df.columns:
+            hit = df[col] < 0
+            print(f"  Cut-off {col} < 0: {int(hit.sum())} stocks")
+            bad |= hit
+    df = df[~bad].copy().reset_index(drop=True)
+    print(f"  Cut-offs removed {before - len(df)} rows -> {len(df)} remain")
+
+    for col in num_cols:
+        if col in df.columns and df[col].notna().sum() > 20:
+            df[col] = winsorize(df[col])
 
     for src, dst in [('pe','inv_pe'),('ev_ebit','inv_ev_ebit'),('ev_sales','inv_ev_sales'),
-                     ('p_fcf','inv_p_fcf'),('nd_ebitda','inv_nd_ebitda')]:
+                     ('p_fcf','inv_p_fcf')]:
         if src in df.columns:
             df[dst] = safe_inv(df[src])
+
+    # Net debt / EBITDA: lower is better, and negative (net cash) is best.
+    # After the ROIC/ROE cut-off, a negative value means net cash rather than
+    # negative EBITDA, so rank on the negated value instead of the inverse
+    # (the inverse threw net-cash companies away as missing).
+    if 'nd_ebitda' in df.columns:
+        df['neg_nd_ebitda'] = -df['nd_ebitda']
 
     if 'peg' in df.columns and 'beta' in df.columns:
         df['pegr'] = df['peg'] * df['beta'].abs()
