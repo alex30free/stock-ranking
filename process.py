@@ -1,4 +1,4 @@
-import argparse, json, math, os
+import argparse, json, math, os, re
 from datetime import datetime, timezone
 import pandas as pd
 from scipy.stats import rankdata
@@ -10,6 +10,7 @@ COLUMN_MAP = {
     "country":       "Info - Country",
     "market_cap":    "Market Cap - Current SEK",
     "pe":            "P/E - Current",
+    "pb":            "P/B - Current",
     "peg":           "PEG - Current",
     "beta":          "Beta - 1y",
     "ev_ebit":       "EV/EBIT - Current",
@@ -29,7 +30,23 @@ COLUMN_MAP = {
     "ret_12m":       "Performance - Perform. 1y",
 }
 
-VALUE_WEIGHTS    = {"inv_pe":0.25,"inv_ev_ebit":0.35,"inv_p_fcf":0.30,"inv_ev_sales":0.10}
+# Value: equal-weighted blend, like Stockopedia's ValueRank.
+# Weights are renormalised over the metrics a stock has, so P/S and dividend
+# yield simply drop out until they are added to the Börsdata export.
+VALUE_WEIGHTS    = {"inv_pe":1,"inv_ev_ebit":1,"inv_p_fcf":1,"inv_ev_sales":1,
+                    "inv_pb":1,"inv_ps":1,"div_yield":1}
+
+# Optional columns, found by pattern so the exact Börsdata header doesn't matter.
+# Margins: 5-year average preferred, then 3-year, then the current value.
+OPTIONAL_COLUMNS = {
+    "ps":        [r"^P/S - "],
+    "div_yield": [r"(?i)^div.*yield.* - ", r"(?i)^yield.* - "],
+}
+MARGIN_SOURCES = {
+    "gross_margin": r"^Gross marg - ",
+    "op_margin":    r"^EBIT marg - ",
+    "net_margin":   r"^Profit marg - ",
+}
 QUALITY_WEIGHTS  = {"roe":0.12,"roic":0.12,"gross_margin":0.10,"op_margin":0.12,
                     "net_margin":0.07,"current_ratio":0.07,"neg_nd_ebitda":0.12,
                     "rev_growth_3y":0.08,"f_score":0.20}
@@ -90,18 +107,41 @@ def build_scores(csv_path):
     df.columns = [c.strip('\r').strip() for c in df.columns]
     print(f"  Loaded {len(df)} rows. First col: {repr(df.columns[0])}")
 
-    missing = [v for v in COLUMN_MAP.values() if v not in df.columns]
+    colmap = dict(COLUMN_MAP)
+
+    # Margins: use a multi-year average if the export has one
+    for key, prefix in MARGIN_SOURCES.items():
+        cands = [c for c in df.columns if re.match(prefix, c)]
+        pick = None
+        for period in ("5y", "3y"):
+            hits = [c for c in cands if period in c and "rowth" not in c]
+            if hits:
+                pick = hits[0]; break
+        if pick:
+            colmap[key] = pick
+        print(f"  {key}: using {repr(colmap[key])}")
+
+    # Optional extra columns (P/S, dividend yield)
+    for key, patterns in OPTIONAL_COLUMNS.items():
+        hit = next((c for p in patterns for c in df.columns if re.match(p, c)), None)
+        if hit:
+            colmap[key] = hit
+            print(f"  {key}: using {repr(hit)}")
+        else:
+            print(f"  {key}: not in export (skipped)")
+
+    missing = [v for v in colmap.values() if v not in df.columns]
     if missing:
         print(f"  MISSING COLUMNS: {missing}")
     else:
-        print(f"  All {len(COLUMN_MAP)} columns matched OK")
+        print(f"  All {len(colmap)} columns matched OK")
 
-    df = df.rename(columns={v: k for k, v in COLUMN_MAP.items()})
+    df = df.rename(columns={v: k for k, v in colmap.items()})
     df['ticker'] = df['ticker'].astype(str).str.strip()
     df = df[df['ticker'].notna() & (df['ticker'] != '') & (df['ticker'] != 'nan')].copy()
     print(f"  After ticker filter: {len(df)} rows")
 
-    num_cols = ['market_cap','pe','peg','beta','ev_ebit','ev_sales','p_fcf','f_score',
+    num_cols = ['market_cap','pe','pb','ps','div_yield','peg','beta','ev_ebit','ev_sales','p_fcf','f_score',
                 'roe','roic','gross_margin','op_margin','net_margin','current_ratio',
                 'nd_ebitda','rev_growth_3y','ret_3m','ret_6m','ret_12m']
     for col in num_cols:
@@ -129,9 +169,13 @@ def build_scores(csv_path):
             df[col] = winsorize(df[col])
 
     for src, dst in [('pe','inv_pe'),('ev_ebit','inv_ev_ebit'),('ev_sales','inv_ev_sales'),
-                     ('p_fcf','inv_p_fcf')]:
+                     ('p_fcf','inv_p_fcf'),('pb','inv_pb'),('ps','inv_ps')]:
         if src in df.columns:
             df[dst] = safe_inv(df[src])
+
+    # Dividend yield: higher is better; a non-payer counts as 0 (ranked lowest)
+    if 'div_yield' in df.columns:
+        df['div_yield'] = df['div_yield'].fillna(0)
 
     # Net debt / EBITDA: lower is better, and negative (net cash) is best.
     # After the ROIC/ROE cut-off, a negative value means net cash rather than
@@ -184,6 +228,11 @@ def build_scores(csv_path):
             'country':       str(row.get('country') or ''),
             'market_cap':    fmt(row.get('market_cap')),
             'pe':            fmt(row.get('pe')),
+            'pb':            fmt(row.get('pb')),
+            'ps':            fmt(row.get('ps')),
+            'div_yield':     fmt(row.get('div_yield')),
+            'gross_margin':  fmt(row.get('gross_margin')),
+            'net_margin':    fmt(row.get('net_margin')),
             'peg':           fmt(row.get('peg')),
             'pegr':          fmt(row.get('pegr')),
             'ev_ebit':       fmt(row.get('ev_ebit')),
